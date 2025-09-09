@@ -11,7 +11,8 @@ const theme = extendTheme({});
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <AuthProvider> {/* 2. Envolva o App com ele */}
+      {/* Contexto de autenticação */}
+      <AuthProvider>
         <App />
       </AuthProvider>
     </ChakraProvider>

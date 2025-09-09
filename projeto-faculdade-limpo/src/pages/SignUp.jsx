@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
-import { Box, Button, FormControl, FormLabel, Heading, Input, Select, VStack, useToast } from '@chakra-ui/react'; // NOVO: Select e useToast
+import { Box, Button, FormControl, FormLabel, Heading, Input, Select, VStack, useToast } from '@chakra-ui/react';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore"; 
 import { auth, db } from '../firebase/config.js';
@@ -14,29 +14,25 @@ export default function SignUp() {
   const navigate = useNavigate(); 
   const toast = useToast(); 
 
-  const handleSubmit = async (event) => { // NOVO: A função agora é 'async'
+  const handleSubmit = async (event) => {
     event.preventDefault();
     
     try {
-      // 1. Cria o usuário na Autenticação
+      // Cria usuário no Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // 2. Salva os dados adicionais no Firestore
-      // Cria uma referência para um novo documento na coleção 'users' com o ID do usuário
+      // Salva dados no Firestore
       const userDocRef = doc(db, "users", user.uid);
-      
-      // Salva os dados nesse documento
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
         role: role 
       });
 
-      console.log("Usuário cadastrado e dados salvos no Firestore:", user.uid);
       toast({ 
         title: "Conta criada.",
-        description: "Seu cadastro foi realizado com sucesso!",
+        description: "Cadastro realizado com sucesso!",
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -80,7 +76,7 @@ export default function SignUp() {
               />
             </FormControl>
 
-            {/* NOVO: Seletor de Papel */}
+            {/* Seletor de papel */}
             <FormControl isRequired>
               <FormLabel>Eu sou</FormLabel>
               <Select value={role} onChange={(e) => setRole(e.target.value)}>

@@ -7,7 +7,7 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config.js';
 import { useAuth } from '../context/AuthContext.jsx';
-import AdminPanel from '../components/AdminPanel.jsx'; // 1. Importe o AdminPanel
+import AdminPanel from '../components/AdminPanel.jsx'; 
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -54,7 +54,7 @@ export default function Dashboard() {
             <Text fontSize="xl">Bem-vindo, {userData.email}!</Text>
             <Text fontSize="lg">Seu papel é: <strong>{userData.role}</strong></Text>
 
-            {/* 2. A LÓGICA DE RENDERIZAÇÃO CONDICIONAL */}
+            {/* Mostra painel só para admin */}
             {userData.role === 'administrador' && <AdminPanel />}
             
           </>

@@ -7,7 +7,7 @@ import { Spinner, Center } from '@chakra-ui/react';
 export default function ProtectedRoute({ children }) {
   const { currentUser, loading } = useAuth();
 
-  // Se a autenticação ainda está sendo verificada, mostre um spinner
+  // Mostra spinner enquanto carrega
   if (loading) {
     return (
       <Center h="100vh">
@@ -16,11 +16,11 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  // Se a verificação terminou e não há usuário, redirecione para o login
+  // Redireciona se não estiver logado
   if (!currentUser) {
     return <Navigate to="/login" />;
   }
 
-  // Se a verificação terminou e há um usuário, mostre a página
+  // Exibe página se logado
   return children;
 }

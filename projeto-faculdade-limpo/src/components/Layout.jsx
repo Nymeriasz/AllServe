@@ -9,7 +9,7 @@ export default function Layout() {
     <Box>
       <Navbar />
       <main>
-        {/* O Outlet é um espaço reservado onde o React Router irá renderizar a página da rota atual (Home, Login, etc.) */}
+        {/* Outlet mostra o conteúdo da rota atual */}
         <Outlet />
       </main>
     </Box>

@@ -18,10 +18,9 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  // CORRIJA ESTA LINHA:
   const value = {
     currentUser,
-    loading // Adicione o loading aqui
+    loading 
   };
 
   return (

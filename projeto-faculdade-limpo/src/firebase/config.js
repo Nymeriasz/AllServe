@@ -11,12 +11,12 @@ const firebaseConfig = {
   storageBucket: "all-service-d9f99.firebasestorage.app",
   messagingSenderId: "267615703336",
   appId: "1:267615703336:web:b1b89330dfc8c00974c01d",
-  measurementId: "G-QS0CVGRRLN" // Esta linha é opcional
+  measurementId: "G-QS0CVGRRLN"
 };
 
 // Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 
-// Exporta os serviços que vamos usar
+// Exporta os serviços
 export const auth = getAuth(app);
 export const db = getFirestore(app);

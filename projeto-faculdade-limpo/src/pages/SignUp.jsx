@@ -1,18 +1,18 @@
 // src/pages/SignUp.jsx
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // NOVO: Para redirecionar o usuário
+import { useNavigate } from 'react-router-dom'; 
 import { Box, Button, FormControl, FormLabel, Heading, Input, Select, VStack, useToast } from '@chakra-ui/react'; // NOVO: Select e useToast
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore"; // NOVO: Para escrever no Firestore
-import { auth, db } from '../firebase/config.js'; // NOVO: Importar 'db'
+import { doc, setDoc } from "firebase/firestore"; 
+import { auth, db } from '../firebase/config.js';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('cliente'); // NOVO: Estado para o papel do usuário
-  const navigate = useNavigate(); // NOVO
-  const toast = useToast(); // NOVO
+  const [role, setRole] = useState('cliente');
+  const navigate = useNavigate(); 
+  const toast = useToast(); 
 
   const handleSubmit = async (event) => { // NOVO: A função agora é 'async'
     event.preventDefault();
@@ -30,22 +30,22 @@ export default function SignUp() {
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
-        role: role // Salva o papel selecionado
+        role: role 
       });
 
       console.log("Usuário cadastrado e dados salvos no Firestore:", user.uid);
-      toast({ // NOVO: Notificação de sucesso
+      toast({ 
         title: "Conta criada.",
         description: "Seu cadastro foi realizado com sucesso!",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
-      navigate('/login'); // NOVO: Redireciona para a página de login
+      navigate('/login'); 
 
     } catch (error) {
       console.error("Erro no cadastro:", error.code, error.message);
-      toast({ // NOVO: Notificação de erro
+      toast({ 
         title: "Erro no cadastro.",
         description: error.message,
         status: "error",

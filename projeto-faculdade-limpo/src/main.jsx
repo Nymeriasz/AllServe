@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
-import { AuthProvider } from './context/AuthContext.jsx'; // 1. Importe o AuthProvider
+import { AuthProvider } from './context/AuthContext.jsx'; 
 
 const theme = extendTheme({});
 

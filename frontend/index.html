@@ -16,15 +16,14 @@
     </div>
 
     <nav class="menu-principal">
-      <a href="#">Início</a>
-      <a href="#">Sobre</a>
-      <a href="#">Profissionais</a>
+      <a href="index.html">Início</a>
+      <a href="profissionais.html">Profissionais</a>
     </nav>
 
     <div class="icones-acao">
       <a href="#" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></a>
-      <a href="#" aria-label="Perfil do usuário"><i class="fa-regular fa-user"></i></a>
-      <a href="#" aria-label="Carrinho de compras"><i class="fa-solid fa-cart-shopping"></i></a>
+      <a href="perfil-usuario.html" aria-label="Perfil do usuário"><i class="fa-regular fa-user"></i></a>
+      <a href="carrinho.html" aria-label="Carrinho de compras"><i class="fa-solid fa-cart-shopping"></i></a>
     </div>
   </header>
 
@@ -34,7 +33,7 @@
         <p class="texto-boas-vindas">Bem-vindo ao AllServe</p>
         <h1>Ache o bartender ideal<br>para o seu evento</h1>
         <p class="subtitulo">Conecte-se com profissionais qualificados para tornar sua festa inesquecível.</p>
-        <button class="botao-principal">CONTRATAR AGORA</button>
+        <a href="profissionais.html" class="botao-principal">CONTRATAR AGORA</a>
       </div>
     </section>
 
@@ -43,17 +42,29 @@
       <p class="descricao">Escolha o tipo de profissional ideal para sua ocasião.</p>
 
       <div class="cards">
-        <div class="card">
+        <div class="card" data-service="tradicional">
           <img src="img/cards.png" alt="Bartender Tradicional">
           <h3>Tradicional</h3>
         </div>
-        <div class="card">
+        <div class="card" data-service="barista">
           <img src="img/cards.png" alt="Bartender Barista">
           <h3>Barista</h3>
         </div>
-        <div class="card">
+        <div class="card" data-service="showman">
           <img src="img/cards.png" alt="Bartender Showman">
           <h3>Showman</h3>
+        </div>
+      </div>
+      
+      <div id="detalhe-servico" class="detalhe-servico oculto">
+        <div class="detalhe-conteudo">
+          <img id="modal-imagem" src="" alt="Imagem do Serviço">
+          <div class="texto">
+            <h4 id="modal-categoria"></h4>
+            <h2 id="modal-titulo"></h2>
+            <p id="modal-descricao"></p>
+            <a href="profissionais.html" class="botao-principal">CONTRATAR AGORA</a>
+          </div>
         </div>
       </div>
     </section>
@@ -61,58 +72,38 @@
     <section class="profissionais">
       <h2>Profissionais</h2>
       <div class="lista-profissionais">
+        
+        <a href="perfil-profissional.html?id=harry" class="card-link">
+          <div class="card-profissional">
+            <div class="imagem"><img src="img/harry.png" alt="Harry Potter"><div class="overlay"><button>Ver detalhes</button></div></div>
+            <div class="info"><h3>Harry Potter</h3><p>Showman</p><span class="preco">R$ 2.500</span></div>
+          </div>
+        </a>
 
-        <div class="card-profissional">
-          <div class="imagem">
-            <img src="img/harry.png" alt="Harry Potter">
-            <div class="overlay"><button>Ver detalhes</button></div>
+        <a href="perfil-profissional.html?id=hermione" class="card-link">
+          <div class="card-profissional">
+            <div class="imagem"><img src="img/hermione.png" alt="Hermione Granger"><div class="overlay"><button>Ver detalhes</button></div></div>
+            <div class="info"><h3>Hermione Granger</h3><p>Barista</p><span class="preco">R$ 2.000</span></div>
           </div>
-          <div class="info">
-            <h3>Harry Potter</h3>
-            <p>Showman</p>
-            <span class="preco">R$ 2.500</span>
-          </div>
-        </div>
+        </a>
 
-        <div class="card-profissional">
-          <div class="imagem">
-            <img src="img/hermione.png" alt="Hermione Granger">
-            <div class="overlay"><button>Ver detalhes</button></div>
+        <a href="perfil-profissional.html?id=rony" class="card-link">
+          <div class="card-profissional">
+            <div class="imagem"><img src="img/rony.png" alt="Rony Weasley"><div class="overlay"><button>Ver detalhes</button></div></div>
+            <div class="info"><h3>Rony Weasley</h3><p>Tradicional</p><span class="preco">R$ 800</span></div>
           </div>
-          <div class="info">
-            <h3>Hermione Granger</h3>
-            <p>Barista</p>
-            <span class="preco">R$ 2.000</span>
-          </div>
-        </div>
+        </a>
 
-        <div class="card-profissional">
-          <div class="imagem">
-            <img src="img/rony.png" alt="Rony Weasley">
-            <div class="overlay"><button>Ver detalhes</button></div>
+        <a href="perfil-profissional.html?id=draco" class="card-link">
+          <div class="card-profissional">
+            <div class="imagem"><img src="img/draco.png" alt="Draco Malfoy"><div class="overlay"><button>Ver detalhes</button></div></div>
+            <div class="info"><h3>Draco Malfoy</h3><p>Tradicional</p><span class="preco">R$ 1.300</span></div>
           </div>
-          <div class="info">
-            <h3>Rony Weasley</h3>
-            <p>Tradicional</p>
-            <span class="preco">R$ 800</span>
-          </div>
-        </div>
-
-        <div class="card-profissional">
-          <div class="imagem">
-            <img src="img/draco.png" alt="Draco Malfoy">
-            <div class="overlay"><button>Ver detalhes</button></div>
-          </div>
-          <div class="info">
-            <h3>Draco Malfoy</h3>
-            <p>Tradicional</p>
-            <span class="preco">R$ 1.300</span>
-          </div>
-        </div>
+        </a>
       </div>
 
       <div class="btn-centro">
-        <button class="botao-secundario">Mostrar mais</button>
+        <a href="profissionais.html" class="botao-secundario">Mostrar mais</a>
       </div>
     </section>
   </main>
@@ -149,5 +140,6 @@
     </div>
   </footer>
 
+  <script src="index.js"></script>
 </body>
 </html>

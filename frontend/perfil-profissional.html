@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Profissional</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="barra-navegacao">
+        <a href="index.html" class="logomarca">
+            <i class="fa-solid fa-martini-glass"></i>
+            <span>All<span class="destaque">Serve</span></span>
+        </a>
+        <nav class="menu-principal">
+            <a href="index.html">Início</a>
+            <a href="profissionais.html">Profissionais</a>
+        </nav>
+        <div class="icones-acao">
+            <a href="#" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></a>
+            <a href="perfil-usuario.html" aria-label="Perfil do usuário"><i class="fa-regular fa-user"></i></a>
+            <a href="carrinho.html" aria-label="Carrinho de compras"><i class="fa-solid fa-cart-shopping"></i></a>
+        </div>
+    </header>
+
+    <main class="container-perfil">
+        <section class="perfil-principal">
+            <div class="perfil-imagem-col">
+                <img id="perfil-imagem" src="" alt="Foto do profissional">
+            </div>
+            <div class="perfil-info-col">
+                <div class="nome-container">
+                    <h1 id="perfil-nome">Carregando...</h1>
+                    <a href="#" id="link-whatsapp" class="btn-mensagem" title="Conversar no WhatsApp" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+
+                <p id="perfil-preco" class="info-preco"></p>
+                <div id="perfil-avaliacao" class="info-avaliacao">
+                    </div>
+                <p id="perfil-resumo" class="info-resumo"></p>
+                
+                <h4>Serviços oferecidos:</h4>
+                <div id="perfil-tags" class="info-tags">
+                    </div>
+
+                <div class="info-acoes">
+                    <div class="quantidade">
+                        <button>-</button>
+                        <input type="text" value="1" readonly>
+                        <button>+</button>
+                    </div>
+                    <a href="#" class="botao-principal contratar">Contratar</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="perfil-detalhes">
+            <nav class="tabs-nav">
+                <button class="tab-btn active" data-tab="descricao">Descrição</button>
+                <button class="tab-btn" data-tab="servicos">Serviços detalhados</button>
+                <button class="tab-btn" data-tab="avaliacoes">Avaliações</button>
+            </nav>
+            <div class="tabs-conteudo">
+                <div id="tab-descricao" class="tab-painel active">
+                    </div>
+                <div id="tab-servicos" class="tab-painel">
+                    <div class="info-extra">
+                        <div><span>ID:</span> <span id="perfil-id"></span></div>
+                        <div><span>Categoria:</span> <span id="perfil-categoria"></span></div>
+                        <div><span>Especialidade:</span> <span id="perfil-especialidade"></span></div>
+                        <div><span>Share:</span>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div id="tab-avaliacoes" class="tab-painel">
+                    <p>Nenhuma avaliação ainda.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-container">
+          <div class="footer-col">
+            <h3 class="logo">All<span>Serve</span></h3>
+            <p>2025 AllServe.<br>Todos os direitos reservados.</p>
+          </div>
+          <div class="footer-col">
+            <h4>Links</h4>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="#">Sobre</a></li>
+                <li><a href="profissionais.html">Profissionais</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Help</h4>
+            <ul>
+              <li><a href="#">Payment Options</a></li>
+              <li><a href="#">Returns</a></li>
+              <li><a href="#">Privacy Policies</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Newsletter</h4>
+            <form>
+              <input type="email" placeholder="Enter Your Email Address" required>
+              <button type="submit">SUBSCRIBE</button>
+            </form>
+          </div>
+        </div>
+    </footer>
+
+    <script src="database.js"></script>
+    <script src="perfil.js"></script>
+</body>
+</html>

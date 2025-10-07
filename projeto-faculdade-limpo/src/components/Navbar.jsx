@@ -28,11 +28,15 @@ export default function Navbar() {
         <Flex gap={4} align="center">
           {currentUser ? (
             <>
-              <Text>Olá, {currentUser.email}</Text>
+              {/* Link de Busca adicionado */}
+              <Link as={RouterLink} to="/buscar">
+                Buscar Bartenders
+              </Link>
               <Link as={RouterLink} to="/dashboard">
                 Dashboard
               </Link>
-              <Button colorScheme="red" onClick={handleLogout}>
+              <Text>Olá, {currentUser.email}</Text>
+              <Button colorScheme="red" size="sm" onClick={handleLogout}>
                 Sair
               </Button>
             </>

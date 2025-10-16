@@ -1,17 +1,14 @@
-// src/components/Layout.jsx
+import NavBar from "./Navbar";
+import Footer from "./Footer";
+import Home from "../pages/Home"
 
-import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar.jsx';
-import { Box } from '@chakra-ui/react';
-
-export default function Layout() {
+export default function Layout({ children }) {
   return (
-    <Box>
-      <Navbar />
-      <main>
-        {/* Outlet mostra o conteúdo da rota atual */}
-        <Outlet />
-      </main>
-    </Box>
+    <>
+      <NavBar />
+      <main>{children}</main>
+      <Home />
+      <Footer />
+    </>
   );
 }

@@ -1,14 +1,19 @@
-import NavBar from "./Navbar";
-import Footer from "./Footer";
-import Home from "../pages/Home"
+// src/components/Layout.jsx
 
-export default function Layout({ children }) {
+import { Outlet } from 'react-router-dom';
+import Navbar from './Navbar.jsx'; 
+import Footer from './Footer.jsx'; 
+import { Box } from '@chakra-ui/react';
+
+export default function Layout() {
   return (
-    <>
-      <NavBar />
-      <main>{children}</main>
-      <Home />
+    <Box display="flex" flexDirection="column" minHeight="100vh"> {/* Garante que o footer fique no fim */}
+      <Navbar />
+      <Box as="main" flex="1"> {/* Faz o conteúdo principal ocupar o espaço */}
+        {/* Outlet renderiza a página da rota atual */}
+        <Outlet />
+      </Box>
       <Footer />
-    </>
+    </Box>
   );
 }

@@ -1,13 +1,15 @@
 // src/components/Navbar.jsx
 
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Flex, Link, Button, Heading, Text } from '@chakra-ui/react';
+import { Box, Flex, Link, Button, Heading, Text, Badge } from '@chakra-ui/react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx'; 
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config.js';
 
 export default function Navbar() {
   const { currentUser } = useAuth();
+  const { cart } = useCart(); 
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -28,13 +30,31 @@ export default function Navbar() {
         <Flex gap={4} align="center">
           {currentUser ? (
             <>
-              {/* Link de Busca adicionado */}
               <Link as={RouterLink} to="/buscar">
                 Buscar Bartenders
               </Link>
               <Link as={RouterLink} to="/dashboard">
                 Dashboard
               </Link>
+              
+              {/* Link do Carrinho */}
+              <Link as={RouterLink} to="/checkout" position="relative">
+                Carrinho
+                {cart.length > 0 && (
+                  <Badge
+                    colorScheme="red"
+                    borderRadius="full"
+                    boxSize="20px"
+                    fontSize="0.7em"
+                    position="absolute"
+                    top="-8px"
+                    right="-15px"
+                  >
+                    {cart.length}
+                  </Badge>
+                )}
+              </Link>
+              
               <Text>Olá, {currentUser.email}</Text>
               <Button colorScheme="red" size="sm" onClick={handleLogout}>
                 Sair

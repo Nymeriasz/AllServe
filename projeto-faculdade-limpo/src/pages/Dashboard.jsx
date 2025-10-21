@@ -21,25 +21,34 @@ import AdminPanel from '../components/AdminPanel.jsx';
 export default function Dashboard() {
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!currentUser) {
+      setLoading(false); // Caso algo inesperado ocorra
+      return;
+    }
+
     const fetchUserData = async () => {
-      if (currentUser) {
+      try {
         const userDocRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
+        const docSnap = await getDoc(userDocRef); 
 
         if (docSnap.exists()) {
           setUserData(docSnap.data());
         } else {
           console.log('Documento do usuário não encontrado no Firestore!');
         }
+      } catch (error) {
+        console.error("Erro ao buscar dados do usuário:", error);
+      } finally {
         setLoading(false);
       }
     };
+
     fetchUserData();
-  }, [currentUser]);
+  }, [currentUser]); 
 
   const handleLogout = async () => {
     try {
@@ -50,6 +59,7 @@ export default function Dashboard() {
     }
   };
 
+  // Renderiza o spinner ENQUANTO o loading do dashboard for true
   if (loading) {
     return (
       <Center h="100vh">
@@ -58,6 +68,7 @@ export default function Dashboard() {
     );
   }
 
+  // Renderiza o conteúdo quando o loading terminar
   return (
     <Box p={8}>
       <VStack spacing={4} align="flex-start">
@@ -73,9 +84,14 @@ export default function Dashboard() {
 
             {/* Links para Clientes */}
             {userData.role === 'cliente' && (
-              <Link as={RouterLink} to="/bartenders" color="teal.500" fontSize="lg">
-                Avaliar um Bartender
-              </Link>
+              <>
+                <Link as={RouterLink} to="/bartenders" color="teal.500" fontSize="lg">
+                  Avaliar um Bartender
+                </Link>
+                <Link as={RouterLink} to="/historico-pagamentos" color="teal.500" fontSize="lg">
+                  Ver Histórico de Pagamentos
+                </Link>
+              </>
             )}
             
             {/* Links para Bartenders */}
@@ -96,7 +112,9 @@ export default function Dashboard() {
             )}
           </>
         ) : (
-          <Text>Não foi possível carregar os dados do usuário.</Text>
+          <Text color="red.500">
+            Não foi possível carregar os dados do usuário. (Verifique o console para permissões)
+          </Text>
         )}
         <Button mt={4} colorScheme="red" onClick={handleLogout}>
           Sair

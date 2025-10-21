@@ -5,15 +5,17 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { AuthProvider } from './context/AuthContext.jsx'; 
+import { CartProvider } from './context/CartContext.jsx'; // 1. Importar
 
 const theme = extendTheme({});
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      {/* Contexto de autenticação */}
       <AuthProvider>
-        <App />
+        <CartProvider> {/* 2. Envolver o App */}
+          <App />
+        </CartProvider>
       </AuthProvider>
     </ChakraProvider>
   </React.StrictMode>

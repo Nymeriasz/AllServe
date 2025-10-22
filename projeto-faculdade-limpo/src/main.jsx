@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { AuthProvider } from './context/AuthContext.jsx'; 
-import { CartProvider } from './context/CartContext.jsx'; // 1. Importar
+import { CartProvider } from './context/CartContext.jsx'; 
 
 const theme = extendTheme({});
 

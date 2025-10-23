@@ -3,7 +3,6 @@
 O **AllServe** é uma plataforma web desenvolvida para conectar **clientes e bartenders profissionais**.  
 A aplicação permite o cadastro de diferentes tipos de usuários, busca por profissionais, visualização de perfis, chat e contratação de serviços.
 
----
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -13,7 +12,6 @@ A aplicação permite o cadastro de diferentes tipos de usuários, busca por pro
 - **Lucide React e React Icons**  
 - **React Router DOM**  
 
----
 
 ## ⚙️ Instalação e Execução
 
@@ -39,7 +37,6 @@ A aplicação permite o cadastro de diferentes tipos de usuários, busca por pro
    ```bash
    npm run dev
 
----
 
 ## 📁 Estrutura do Projeto
 ```bash
@@ -79,7 +76,6 @@ AllServe-main/
 
 ```
 
----
 
 ## ☁️ Deploy
 Para publicar no Firebase Hosting:
@@ -87,7 +83,6 @@ Para publicar no Firebase Hosting:
 firebase deploy
 ```
 
----
 
 ## 📄 Licença
 Este projeto foi desenvolvido como trabalho final do curso de Análise e Desenvolvimento de Sistemas (UNIFIP).

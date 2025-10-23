@@ -1,7 +1,7 @@
 # 🍸 AllServe
 
-O **AllServe** é uma plataforma web desenvolvida para conectar **clientes e bartenders profissionais**.  
-A aplicação permite o cadastro de diferentes tipos de usuários, busca por profissionais, visualização de perfis, chat e contratação de serviços.
+O **AllServe** é um sistema web desenvolvido para conectar clientes a profissionais de eventos, com foco inicial em bartenders.
+A plataforma permite o cadastro de usuários, busca por profissionais, contratação de serviços, pagamento online e avaliação pós-evento, oferecendo uma experiência prática e segura para ambos os lados.
 
 
 ## 🚀 Tecnologias Utilizadas
@@ -55,14 +55,6 @@ AllServe-main/
 │   ├── firebase/              # Configuração e inicialização do Firebase
 │   ├── hooks/                 # Hooks customizados (ex: useAuth, useFirestore)
 │   ├── pages/                 # Páginas principais da aplicação
-│   │   ├── Login/
-│   │   ├── Cadastro/
-│   │   ├── Dashboard/
-│   │   ├── PerfilBartender/
-│   │   ├── Chat/
-│   │   ├── Pagamento/
-│   │   ├── Confirmacao/
-│   │   └── Avaliacao/
 │   ├── services/              # Serviços (consultas e interações com o Firebase)
 │   ├── styles/                # Arquivos de estilo (CSS e Bootstrap customizado)
 │   ├── App.jsx                # Componente raiz da aplicação

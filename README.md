@@ -40,31 +40,41 @@ A plataforma permite o cadastro de usuários, busca por profissionais, contrata�
 
 ## 📁 Estrutura do Projeto
 ```bash
-AllServe-main/
+AllServe/
 │
-├── functions/                 # Funções serverless do Firebase (backend)
-│   ├── index.js
-│   ├── package.json
-│   └── .eslintrc.js
+├── projeto-faculdade-limpo/       # Pasta principal da aplicação React
+│ ├── public/ 
+│ │
+│ ├── src/                         # Código-fonte principal
+│ │ ├── assets/                    # Imagens e ícones usados na interface
+│ │ │
+│ │ ├── components/                # Componentes reutilizáveis
+│ │ │ ├── AdminPanel.jsx           # Painel administrativo
+│ │ │ ├── BartenderCard.jsx        # Card de exibição de bartender
+│ │ │ ├── Footer.jsx               # Rodapé do site
+│ │ │ ├── Layout.jsx               # Estrutura padrão de layout
+│ │ │ └── Navbar.jsx               # Barra de navegação principal
+│ │ │
+│ │ ├── context/                   # Contextos globais 
+│ │ │
+│ │ ├── firebase/                  # Configuração e integração com o Firebase
+│ │ │
+│ │ ├── pages/                     # Páginas da aplicação
+│ │ │
+│ │ ├── routes/                    # Definição das rotas e controle de navegação
+│ │ │
+│ │ ├── App.css                    # Estilos principais da aplicação
+│ │ ├── App.jsx                    # Componente raiz da aplicação
+│ │ ├── index.css                  # Estilos globais
+│ │ └── main.jsx                   # Ponto de entrada da aplicação React
+│ │
+│ ├── index.html                   # HTML principal da aplicação
+│ ├── package-lock.json            # Controle de versões das dependências
+│ ├── package.json                 # Dependências e scripts do projeto
+│ ├── README.md                    # Documentação do projeto
+│ └── vite.config.js               # Configuração do bundler Vite
 │
-├── public/                    # Arquivos públicos (favicon, index.html, imagens globais)
-│
-├── src/                       # Código-fonte do frontend (React)
-│   ├── assets/                # Imagens, ícones e recursos visuais
-│   ├── components/            # Componentes reutilizáveis (botões, cards, navbar, etc.)
-│   ├── firebase/              # Configuração e inicialização do Firebase
-│   ├── hooks/                 # Hooks customizados (ex: useAuth, useFirestore)
-│   ├── pages/                 # Páginas principais da aplicação
-│   ├── services/              # Serviços (consultas e interações com o Firebase)
-│   ├── styles/                # Arquivos de estilo (CSS e Bootstrap customizado)
-│   ├── App.jsx                # Componente raiz da aplicação
-│   └── main.jsx               # Ponto de entrada da aplicação
-│
-├── .firebaserc                # Configuração de ambiente do Firebase
-├── firebase.json              # Configuração de deploy do Firebase Hosting
-├── package.json               # Dependências e scripts do projeto
-├── vite.config.js             # Configuração do Vite
-└── README.md                  # Documentação do projeto
+└── node_modules/                  # Dependências instaladas (gerado automaticamente)
 
 ```
 

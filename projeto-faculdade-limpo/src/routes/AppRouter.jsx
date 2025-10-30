@@ -14,6 +14,7 @@ import PerfilBartender from '../pages/PerfilBartender.jsx';
 import ModerarAvaliacoes from '../pages/ModerarAvaliacoes.jsx';
 import AdminRoute from './AdminRoute.jsx'; 
 import BuscarBartenders from '../pages/BuscarBartenders.jsx';
+import SobrePage from '../pages/SobrePage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -21,7 +22,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: 'buscar', // Nova rota
+        path: 'buscar', 
         element: (
           <ProtectedRoute>
             <BuscarBartenders />

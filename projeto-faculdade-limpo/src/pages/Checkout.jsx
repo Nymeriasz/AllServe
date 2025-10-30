@@ -1,140 +1,174 @@
-// src/pages/Checkout.jsx 
+// src/pages/Checkout.jsx (Arquivo Corrigido e Estilizado)
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Box, Button, Heading, Text, VStack, useToast, Spinner, Center,
-  Divider, HStack, IconButton, Icon, 
-} from '@chakra-ui/react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useCart } from '../context/CartContext.jsx'; 
 
-const TAXA_PLATAFORMA = 0.10; 
-
-
-const CloseIcon = (props) => (
-  <svg
-    stroke="currentColor"
-    fill="currentColor"
-    strokeWidth="0"
-    viewBox="0 0 512 512"
-    height="1em"
-    width="1em"
-    xmlns="http://www.w3.org/2000/svg"
-    {...props}
-  >
-    <path d="M464 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h416c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-83.6 290.5c4.8 4.8 4.8 12.6 0 17.4l-40.5 40.5c-4.8 4.8-12.6 4.8-17.4 0L256 313.3l-66.5 67.1c-4.8 4.8-12.6 4.8-17.4 0l-40.5-40.5c-4.8-4.8-4.8-12.6 0-17.4L198.1 256 131.6 189.5c-4.8-4.8-4.8-12.6 0-17.4l40.5-40.5c4.8-4.8 12.6-4.8 17.4 0L256 198.1l66.5-67.1c4.8-4.8 12.6-4.8 17.4 0l40.5 40.5c4.8 4.8 4.8 12.6 0 17.4L313.9 256l66.5 66.5z"></path>
-  </svg>
-);
-
+// Adicionamos a taxa aqui, fora do componente
+const TAXA_PLATAFORMA_PERCENTUAL = 0.10; // 10%
 
 export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const toast = useToast();
   
+  // Usando o useCart que já tem tudo que precisamos
   const { cart, removeFromCart, clearCart } = useCart();
 
-  const precoBase = cart.reduce((acc, item) => acc + (Number(item.precoPorHora) || 0), 0);
-  const taxaPlataforma = precoBase * TAXA_PLATAFORMA;
-  const valorTotal = precoBase + taxaPlataforma;
+  // --- LÓGICA DE CÁLCULO CORRIGIDA ---
+  
+  // 1. Calcula o subtotal (Preço/Hora * Quantidade de Horas)
+  const subtotal = cart.reduce((acc, item) => {
+    const preco = Number(item.precoPorHora) || 0;
+    const quant = Number(item.quantity) || 1;
+    return acc + (preco * quant);
+  }, 0);
 
+  // 2. Calcula a taxa com base no subtotal
+  const taxaPlataforma = subtotal * TAXA_PLATAFORMA_PERCENTUAL;
+
+  // 3. Calcula o total final
+  const valorTotal = subtotal + taxaPlataforma;
+
+  // Formata os valores para exibição
+  const subtotalFormatado = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+  const taxaFormatada = `R$ ${taxaPlataforma.toFixed(2).replace('.', ',')}`;
+  const totalFormatado = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+
+  // Função para simular o pagamento (lógica do seu Checkout.jsx)
   const handleSimulatePayment = async () => {
+    if (cart.length === 0) return; // Não faz nada se o carrinho estiver vazio
+
     setIsProcessing(true);
+
+    // Simula um delay de processamento de pagamento
     setTimeout(async () => {
       try {
+        // Salva o pedido no Firestore
         const pagamentosRef = collection(db, "pagamentos");
         await addDoc(pagamentosRef, {
           clienteId: currentUser.uid,
           clienteEmail: currentUser.email,
-          itens: cart.map(item => ({ id: item.id, nome: item.nome, preco: item.precoPorHora })),
-          itemComprado: `Serviços de ${cart.map(b => b.nome).join(', ')}`,
-          valorBase: precoBase,
+          // Salva os itens com a quantidade e preço corretos
+          itens: cart.map(item => ({
+            id: item.id,
+            nome: item.nome,
+            precoPorHora: item.precoPorHora,
+            quantity: item.quantity
+          })),
+          valorBase: subtotal,
           taxa: taxaPlataforma,
           valor: valorTotal,
           status: "Aprovado",
           criadoEm: serverTimestamp(),
         });
+        
+        // Limpa o carrinho e navega para a página de sucesso
         clearCart();
-        navigate('/payment-success');
+        navigate('/payment-success'); // Certifique-se que essa rota existe
+
       } catch (error) {
-        console.error("Erro ao salvar comprovante:", error);
-        toast({ title: "Erro", description: "Não foi possível salvar seu comprovante.", status: "error" });
+        console.error("Erro ao salvar pagamento:", error);
+        // Você pode adicionar um toast ou alerta aqui
+        alert("Erro ao processar seu pagamento. Tente novamente.");
         setIsProcessing(false);
       }
-    }, 3000); 
+    }, 2000); // Delay de 2 segundos
   };
 
+  // --- JSX (Layout do seu CarrinhoPage.jsx original) ---
   return (
-    <Box p={8} maxWidth="700px" margin="auto" mt={10} borderWidth={1} borderRadius={8} boxShadow="lg">
-      <VStack spacing={6}>
-        <Heading>Carrinho e Checkout</Heading>
-        
-        <VStack spacing={4} align="stretch" w="full">
-          <Heading size="md">Itens no seu carrinho</Heading>
-          {cart.length > 0 ? (
-            cart.map(item => (
-              <HStack key={item.id} justify="space-between" p={2} borderWidth={1} borderRadius={4}>
-                <Box>
-                  <Text fontWeight="bold">{item.nome}</Text>
-                  <Text fontSize="sm">R$ {(Number(item.precoPorHora) || 0).toFixed(2)}</Text>
-                </Box>
-                <IconButton
-                  icon={<Icon as={CloseIcon} />} // USAMOS O 'Icon as={...}'
-                  size="sm"
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={() => removeFromCart(item.id)}
-                  aria-label="Remover do carrinho"
-                />
-              </HStack>
-            ))
-          ) : (
-            <Text>Seu carrinho está vazio.</Text>
-          )}
-        </VStack>
-        
-        <Divider />
-        
-        {/* ... (resto do JSX do Checkout: Sumário de custos, botão de pagar, etc.) ... */}
-        <VStack spacing={4} align="stretch" w="full">
-          <HStack justify="space-between">
-            <Text>Valor dos serviços (base):</Text>
-            <Text>R$ {precoBase.toFixed(2)}</Text>
-          </HStack>
-          <HStack justify="space-between">
-            <Text>Taxa da plataforma (10%):</Text>
-            <Text>R$ {taxaPlataforma.toFixed(2)}</Text>
-          </HStack>
-          <Divider />
-          <HStack justify="space-between" fontSize="2xl" fontWeight="bold">
-            <Text color="teal.500">Total:</Text>
-            <Text color="teal.500">R$ {valorTotal.toFixed(2)}</Text>
-          </HStack>
-        </VStack>
+    <div>
+      <section className="pagina-banner">
+        <div className="container"><h1>Carrinho e Checkout</h1></div>
+      </section>
+      
+      <section className="pagina-conteudo">
+        <div className="carrinho-container">
+          <div className="carrinho-itens">
+            <div className="carrinho-header">
+                <span className="header-profissional">Profissional</span>
+                <span className="header-valor">Valor/Hora</span>
+                <span className="header-hora">Hora(s)</span>
+                <span className="header-total">Total</span>
+            </div>
 
-        {isProcessing ? (
-          <Center h="100px">
-            <VStack>
-              <Spinner size="xl" />
-              <Text>Processando pagamento... Por favor, aguarde.</Text>
-            </VStack>
-          </Center>
-        ) : (
-          <Button
-            colorScheme="teal"
-            size="lg"
-            width="full"
-            onClick={handleSimulatePayment}
-            isDisabled={cart.length === 0}
-          >
-            Pagar com Cartão (Simulado)
-          </Button>
-        )}
-      </VStack>
-    </Box>
+            {cart.length === 0 ? (
+              <p className="carrinho-vazio" style={{ padding: '20px' }}>Seu carrinho está vazio.</p>
+            ) : (
+              cart.map(item => {
+                // Pegamos os dados direto do item no carrinho
+                // (Graças à correção que fizemos no PerfilBartender.jsx)
+                const precoHora = Number(item.precoPorHora) || 0;
+                const quant = Number(item.quantity) || 1;
+                const totalItem = precoHora * quant;
+
+                const itemTotalFormatado = `R$ ${totalItem.toFixed(2).replace('.', ',')}`;
+                const itemPrecoFormatado = `R$ ${precoHora.toFixed(2).replace('.', ',')}`;
+                const placeholderImage = '/img/avatar-placeholder.png';
+
+
+                return (
+                  <div key={item.id} className="carrinho-item">
+                    <div className="item-info">
+                      {/* Usamos a imagem salva no carrinho */}
+                      <img src={item.imagem || placeholderImage} alt={item.nome} />
+                      <div>
+                        {/* <p className="item-categoria">{item.categoria || 'Bartender'}</p> */}
+                        <h3 className="item-nome">{item.nome}</h3>
+                      </div>
+                    </div>
+                    <div className="item-valor">{itemPrecoFormatado}</div>
+                    <div className="item-quantidade">
+                      {/* O input é readOnly pois a quantidade foi definida na página de perfil */}
+                      <input type="number" value={quant} min="1" readOnly />
+                    </div>
+                    <div className="item-total">{itemTotalFormatado}</div>
+                    <div className="item-remover">
+                      <button 
+                        onClick={() => !isProcessing && removeFromCart(item.id)} 
+                        className="remover-btn"
+                        disabled={isProcessing}
+                      >
+                        <i className="fa-regular fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          
+          {/* Resumo do Pedido (com a lógica de taxa) */}
+          <div className="carrinho-resumo">
+            <h3>Resumo do Pedido</h3>
+            <div className="resumo-linha">
+              <span>Subtotal (Serviços)</span>
+              <span className="resumo-subtotal">{subtotalFormatado}</span>
+            </div>
+            <div className="resumo-linha">
+              <span>Taxa da plataforma (10%)</span>
+              <span className="resumo-subtotal">{taxaFormatada}</span>
+            </div>
+            <div className="resumo-linha total">
+              <span>Total</span>
+              <span className="resumo-total">{totalFormatado}</span>
+            </div>
+            
+            {/* Botão de Pagamento */}
+            <button 
+              onClick={handleSimulatePayment} 
+              className="botao-contratar" // Reutiliza a classe CSS
+              disabled={isProcessing || cart.length === 0}
+            >
+              {isProcessing ? 'Processando...' : 'Pagar Agora (Simulado)'}
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

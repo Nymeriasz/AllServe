@@ -1,232 +1,245 @@
-// src/pages/Dashboard.jsx (Lógica + Visual)
+// src/pages/Dashboard.jsx (Corrigido o import)
 
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'; // Importações extras para pedidos
-import { auth, db } from '../firebase/config.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
+import { useAuth } from '../context/AuthContext';
+import {
+  Box, Container, Flex, Heading, Text, VStack, Button,
+  Image, Spinner, Center, HStack // <-- CORREÇÃO AQUI: HStack foi adicionado
+} from '@chakra-ui/react';
 
-// (Opcional) Você pode mover os painéis de conteúdo para componentes separados depois
-// import AdminPanel from '../components/AdminPanel.jsx'; 
-// import HistoricoPedidos from '../components/HistoricoPedidos.jsx';
+// --- Cores do seu Home.jsx ---
+const CustomGold = "#A5874D";
+const DarkText = "#292728";
 
-// Componente simples de Loading
 const LoadingSpinner = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-    <p>Carregando dados do usuário...</p>
-  </div>
+  <Center h="50vh">
+    <Spinner size="xl" color={CustomGold} />
+    <Text ml={4}>Carregando dados do usuário...</Text>
+  </Center>
+);
+
+// Componente para os botões do menu
+const MenuButton = ({ isActive, onClick, iconClass, children }) => (
+  <Button
+    variant={isActive ? "solid" : "ghost"}
+    bg={isActive ? CustomGold : "transparent"}
+    color={isActive ? "white" : DarkText}
+    _hover={{ bg: isActive ? '#8C713B' : 'gray.100' }}
+    justifyContent="flex-start"
+    w="100%"
+    leftIcon={<Box as="i" className={iconClass} mr={2} />}
+    onClick={onClick}
+  >
+    {children}
+  </Button>
 );
 
 export default function Dashboard() {
-  const { currentUser } = useAuth();
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('loading');
+  const navigate = useNavigate();
 
-  // Estado para controlar a aba ativa (lógica do UsuarioPage.jsx)
-  const [activeTab, setActiveTab] = useState('loading'); // Começa como loading
+  // --- Lógica de Busca de Dados (Mantida 100%) ---
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+    const fetchUserData = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserData(data);
+          setActiveTab(
+            data.role === 'administrador'
+              ? 'admin'
+              : data.role === 'bartender'
+              ? 'meu-perfil'
+              : 'pedidos'
+          );
+        } else {
+          console.log('Usuário não encontrado!');
+          navigate('/login');
+        }
+      } catch (err) {
+        console.error('Erro ao buscar dados:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserData();
+  }, [currentUser, navigate]);
 
-  // (Opcional) Estado para guardar os pedidos do cliente
-  // const [pedidos, setPedidos] = useState([]);
-
-  // --- LÓGICA DE BUSCA DE DADOS (do Dashboard.jsx) ---
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/login'); // Se não há usuário, manda pro login
-      return;
-    }
-
-    const fetchUserData = async () => {
-      try {
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setUserData(data);
-          
-          // Define a aba inicial com base no papel do usuário
-          if (data.role === 'administrador') {
-            setActiveTab('admin');
-          } else if (data.role === 'bartender') {
-            setActiveTab('meu-perfil');
-          } else {
-            setActiveTab('pedidos'); // Padrão para cliente
-          }
-        } else {
-          console.log('Documento do usuário não encontrado!');
-          navigate('/login'); // Se não acha o doc, desloga
-        }
-      } catch (error) {
-        console.error("Erro ao buscar dados do usuário:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-    
-    // (Opcional) Aqui você também poderia buscar os pedidos do cliente
-    // const fetchPedidos = async () => { ... }
-    // if (currentUser) fetchPedidos();
-
-  }, [currentUser, navigate]);
-
-  // --- LÓGICA DE AÇÕES (do Dashboard.jsx e UsuarioPage.jsx) ---
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    }
-  };
-
-  const handleTabClick = (tabName) => {
-      setActiveTab(tabName);
+  // --- Lógica de Logout (Mantida 100%) ---
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (err) {
+      console.error('Erro ao sair:', err);
+    }
   };
 
-  // --- RENDERIZAÇÃO ---
-  if (loading || !userData) {
-    return <LoadingSpinner />;
-  }
+  const handleTabClick = (tabName) => {
+    setActiveTab(tabName);
+  };
 
-  // --- JSX (Visual do UsuarioPage.jsx) ---
-  return (
-    <section className="pagina-conteudo">
-      <div className="container perfil-usuario-container">
-        
-        <aside className="perfil-nav">
-          <div className="user-info-card">
-            <img 
-              src={userData.fotoURL || '/img/avatar-exemplo.png'} 
-              alt="Avatar do usuário" 
-              className="user-avatar" 
+  if (loading || !userData) return <LoadingSpinner />;
+
+  // --- JSX (Convertido para Chakra UI) ---
+  return (
+    <Container maxW="container.lg" py={{ base: 10, md: 16 }}>
+      <Flex direction={{ base: 'column', md: 'row' }} gap={10}>
+        
+        {/* Coluna da Esquerda: Menu de Navegação */}
+        <Box w={{ base: '100%', md: '300px' }} flexShrink={0}>
+          {/* Card de Informação do Usuário */}
+          <VStack 
+            spacing={4} 
+            p={6} 
+            bg="gray.50" 
+            borderRadius="md" 
+            boxShadow="sm" 
+            align="center" 
+            mb={6}
+          >
+            <Image
+              borderRadius="full"
+              boxSize="100px"
+              src={userData.fotoURL || '/img/avatar-exemplo.png'}
+              alt="Avatar"
+              objectFit="cover"
+              border="3px solid"
+              borderColor={CustomGold}
             />
-            <h3>Olá, {userData.nome || 'Usuário'}!</h3>
-            <p>{userData.email}</p>
-          </div>
-          <nav className="perfil-menu">
-            <ul>
-              {/* Links do Cliente */}
-              {userData.role === 'cliente' && (
-                <>
-                  <li>
-                    <a href="#" 
-                       className={`menu-link ${activeTab === 'pedidos' ? 'active' : ''}`}
-                       onClick={(e) => { e.preventDefault(); handleTabClick('pedidos'); }}>
-                       <i className="fa-solid fa-receipt"></i> Meus Pedidos
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" 
-                       className={`menu-link ${activeTab === 'favoritos' ? 'active' : ''}`}
-                       onClick={(e) => { e.preventDefault(); handleTabClick('favoritos'); }}>
-                       <i className="fa-regular fa-heart"></i> Favoritos
-                    </a>
-                  </li>
-                </>
-              )}
+            <Heading size="md" color={DarkText}>Olá, {userData.nome || 'Usuário'}!</Heading>
+            <Text color="gray.600" fontSize="sm">{userData.email}</Text>
+          </VStack>
 
-              {/* Links do Bartender */}
-              {userData.role === 'bartender' && (
-                <li>
-                  <a href="#" 
-                     className={`menu-link ${activeTab === 'meu-perfil' ? 'active' : ''}`}
-                     onClick={(e) => { e.preventDefault(); handleTabClick('meu-perfil'); }}>
-                     <i className="fa-solid fa-user-tie"></i> Meu Perfil
-                  </a>
-                </li>
-              )}
+          {/* Menu */}
+          <VStack as="nav" align="stretch" spacing={2}>
+            {userData.role === 'cliente' && (
+              <>
+                <MenuButton
+                  isActive={activeTab === 'pedidos'}
+                  onClick={() => handleTabClick('pedidos')}
+                  iconClass="fa-solid fa-receipt"
+                >
+                  Meus Pedidos
+                </MenuButton>
+                <MenuButton
+                  isActive={activeTab === 'favoritos'}
+                  onClick={() => handleTabClick('favoritos')}
+                  iconClass="fa-regular fa-heart"
+                >
+                  Favoritos
+                </MenuButton>
+              </>
+            )}
 
-              {/* Links do Admin */}
-              {userData.role === 'administrador' && (
-                <li>
-                  <a href="#" 
-                     className={`menu-link ${activeTab === 'admin' ? 'active' : ''}`}
-                     onClick={(e) => { e.preventDefault(); handleTabClick('admin'); }}>
-                     <i className="fa-solid fa-shield-halved"></i> Painel Admin
-                  </a>
-                </li>
-              )}
+            {userData.role === 'bartender' && (
+              <MenuButton
+                isActive={activeTab === 'meu-perfil'}
+                onClick={() => handleTabClick('meu-perfil')}
+                iconClass="fa-solid fa-user-tie"
+              >
+                Meu Perfil
+              </MenuButton>
+            )}
 
-              {/* Links Comuns */}
-              <li>
-                <a href="#" 
-                   className={`menu-link ${activeTab === 'config' ? 'active' : ''}`}
-                   onClick={(e) => { e.preventDefault(); handleTabClick('config'); }}>
-                   <i className="fa-solid fa-gear"></i> Configurações
-                </a>
-              </li>
-              <li>
-                {/* Botão de Sair agora usa o handleLogout */}
-                <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="menu-link">
-                  <i className="fa-solid fa-right-from-bracket"></i> Sair
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </aside>
+            {userData.role === 'administrador' && (
+              <MenuButton
+                isActive={activeTab === 'admin'}
+                onClick={() => handleTabClick('admin')}
+                iconClass="fa-solid fa-shield-halved"
+              >
+                Painel Admin
+              </MenuButton>
+            )}
+            
+            <MenuButton
+              isActive={activeTab === 'config'}
+              onClick={() => handleTabClick('config')}
+              iconClass="fa-solid fa-gear"
+            >
+              Configurações
+            </MenuButton>
 
-        <section className="perfil-conteudo">
-          
-          {/* --- PAINÉIS DE CONTEÚDO --- */}
+            <Button
+              variant="ghost"
+              color="red.500"
+              _hover={{ bg: 'red.50' }}
+              justifyContent="flex-start"
+              w="100%"
+              leftIcon={<Box as="i" className="fa-solid fa-right-from-bracket" mr={2} />}
+              onClick={handleLogout}
+            >
+              Sair
+            </Button>
+          </VStack>
+        </Box>
 
-          <div id="pedidos" className={`painel-conteudo ${activeTab === 'pedidos' ? 'active' : ''}`}>
-            <h2>Meus Pedidos</h2>
-            {/* Aqui você pode renderizar os pedidos ou importar 
-              o componente <HistoricoPagamentos /> que busca os dados
-            */}
-            <p>Em breve: Você verá seu histórico de contratações aqui.</p>
-            {/* Exemplo de card (do UsuarioPage.jsx) */}
-            <div className="pedido-card">
-              <div className="pedido-info">
-                  <img src="/img/hermione.png" alt="Exemplo" />
-                  <div>
-                      <h4>Contratação de Barista (Exemplo)</h4>
-                      <p>Profissional: <strong>Hermione Granger</strong></p>
-                      <p>Data: 25/10/2025</p>
-                  </div>
-              </div>
-              <div className="pedido-status">
-                  <span className="status concluido">Concluído</span>
-                  <span className="pedido-valor">R$ 2.000,00</span>
-              </div>
-            </div>
-          </div>
+        {/* Coluna da Direita: Conteúdo das Abas */}
+        <Box flex={1} bg="white" p={8} borderRadius="md" boxShadow="sm">
+          {/* Painel de Pedidos */}
+          <Box display={activeTab === 'pedidos' ? 'block' : 'none'}>
+            <Heading size="lg" mb={6}>Meus Pedidos</Heading>
+            <Text mb={4}>Em breve: histórico de contratações.</Text>
+            {/* Exemplo de card (convertido) */}
+            <Flex borderWidth={1} borderRadius="md" p={4} align="center" justify="space-between">
+              <HStack spacing={4}> {/* <--- O HStack que estava causando o erro */}
+                <Image src="/img/hermione.png" alt="Exemplo" boxSize="60px" borderRadius="md" objectFit="cover" />
+                <Box>
+                  <Heading size="sm">Contratação de Barista (Exemplo)</Heading>
+                  <Text fontSize="sm">Profissional: <strong>Hermione Granger</strong></Text>
+                  <Text fontSize="sm" color="gray.600">Data: 25/10/2025</Text>
+                </Box>
+              </HStack>
+              <VStack align="flex-end">
+                <Text color="green.500" fontWeight="bold">Concluído</Text>
+                <Text fontWeight="bold" fontSize="lg">R$ 2.000,00</Text>
+              </VStack>
+            </Flex>
+          </Box>
 
-          <div id="favoritos" className={`painel-conteudo ${activeTab === 'favoritos' ? 'active' : ''}`}>
-            <h2>Meus Favoritos</h2>
-            <p>Você ainda não marcou nenhum profissional como favorito.</p>
-          </div>
+          {/* Painel de Favoritos */}
+          <Box display={activeTab === 'favoritos' ? 'block' : 'none'}>
+            <Heading size="lg" mb={6}>Meus Favoritos</Heading>
+            <Text>Nenhum profissional favorito ainda.</Text>
+          </Box>
 
-          <div id="config" className={`painel-conteudo ${activeTab === 'config' ? 'active' : ''}`}>
-            <h2>Configurações da Conta</h2>
-            <p>Em breve, aqui você poderá alterar sua senha e informações de pagamento.</p>
-          </div>
+          {/* Painel de Configurações */}
+          <Box display={activeTab === 'config' ? 'block' : 'none'}>
+            <Heading size="lg" mb={6}>Configurações da Conta</Heading>
+            <Text>Em breve: alterar senha e dados de pagamento.</Text>
+          </Box>
 
-          {/* Painel do Bartender */}
-          <div id="meu-perfil" className={`painel-conteudo ${activeTab === 'meu-perfil' ? 'active' : ''}`}>
-            <h2>Meu Perfil de Bartender</h2>
-            <p>Aqui você poderá editar suas informações, preço, fotos e biografia.</p>
-            <Link to={`/bartender/${currentUser.uid}`} className="botao-secundario">
+          {/* Painel de Bartender */}
+          <Box display={activeTab === 'meu-perfil' ? 'block' : 'none'}>
+            <Heading size="lg" mb={6}>Meu Perfil de Bartender</Heading>
+            <Text mb={4}>Aqui você poderá editar suas informações, preço e biografia.</Text>
+            <Button as={Link} to={`/bartender/${currentUser.uid}`} bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>
               Ver meu Perfil Público
-            </Link>
-          </div>
+            </Button>
+          </Box>
 
-          {/* Painel do Admin */}
-          <div id="admin" className={`painel-conteudo ${activeTab === 'admin' ? 'active' : ''}`}>
-            <h2>Painel do Administrador</h2>
-            {/* <AdminPanel /> */}
-            <p>Carregando painel de administração...</p>
-            <Link to="/admin/moderar-avaliacoes" className="botao-secundario">
+          {/* Painel de Admin */}
+          <Box display={activeTab === 'admin' ? 'block' : 'none'}>
+            <Heading size="lg" mb={6}>Painel do Administrador</Heading>
+            <Text mb={4}>Gerenciamento do sistema.</Text>
+            <Button as={Link} to="/admin/moderar-avaliacoes" bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>
               Moderar Avaliações
-            </Link>
-          </div>
-
-        </section>
-      </div>
-    </section>
-  );
+            </Button>
+          </Box>
+        </Box>
+      </Flex>
+    </Container>
+  );
 }

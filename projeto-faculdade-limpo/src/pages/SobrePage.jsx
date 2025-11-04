@@ -1,12 +1,10 @@
-// src/pages/SobrePage.jsx (Convertido para Chakra UI)
-
 import { Box, Container, Heading, Text, List, ListItem, ListIcon } from '@chakra-ui/react';
 import { CheckCircleIcon } from '@chakra-ui/icons';
 
 export default function SobrePage() {
   return (
     <Box>
-      {/* 1. Banner */}
+  
       <Box bg="#E9E0D4" py={{ base: 12, md: 20 }} textAlign="center">
         <Container maxW="container.lg">
           <Heading as="h1" size={{ base: 'xl', md: '2xl' }} color="#A5874D">
@@ -15,10 +13,9 @@ export default function SobrePage() {
         </Container>
       </Box>
 
-      {/* 2. Conteúdo da Página */}
       <Container maxW="container.lg" py={{ base: 12, md: 20 }}>
         
-        {/* Nossa História */}
+    
         <Box mb={10}>
           <Heading as="h2" size="xl" mb={4} borderBottom="2px solid #A5874D" pb={2}>
             Nossa História
@@ -35,7 +32,7 @@ export default function SobrePage() {
           </Text>
         </Box>
 
-        {/* Nossa Missão e Nossos Valores */}
+       
         <Box mb={10}>
           <Heading as="h2" size="xl" mb={4} borderBottom="2px solid #A5874D" pb={2}>
             Nossa Missão e Nossos Valores
@@ -60,7 +57,7 @@ export default function SobrePage() {
           </List>
         </Box>
 
-        {/* Nossos Diferenciais */}
+      
         <Box mb={10}>
           <Heading as="h2" size="xl" mb={4} borderBottom="2px solid #A5874D" pb={2}>
             Nossos Diferenciais
@@ -74,7 +71,7 @@ export default function SobrePage() {
           </Text>
         </Box>
 
-        {/* Entre em Contato */}
+     
         <Box bg="gray.100" p={8} borderRadius="md">
           <Heading as="h2" size="xl" mb={6}>
             Entre em Contato

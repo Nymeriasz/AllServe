@@ -27,23 +27,23 @@ const LightText = "#707070";
 const ITEMS_PER_PAGE = 8;
 
 // --- Card do Profissional (copiado do Home.jsx) ---
-const ProfessionalCard = ({ professional }) => {
-  const imageUrl = professional.fotoURL || `https://api.dicebear.com/8.x/avataaars/svg?seed=${professional.seed || professional.nome}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+const ProfessionalCard = ({ profissional }) => {
+  const imageUrl = profissional.fotoURL || `https://api.dicebear.com/8.x/avataaars/svg?seed=${profissional.seed || profissional.nome}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
   // Usamos o 'preco' que já foi adaptado na busca
-  const preco = Number(professional.preco) || 0;
+  const preco = Number(profissional.preco) || 0;
 
   return (
-    <Box as={RouterLink} to={`/bartender/${professional.id}`}
+    <Box as={RouterLink} to={`/bartender/${profissional.id}`}
         bg="white" borderRadius="md" boxShadow="lg" overflow="hidden" textAlign="left" transition="0.2s" _hover={{ boxShadow: '2xl', transform: 'translateY(-4px)', textDecoration: 'none' }}>
         <Box aspectRatio={1 / 1} overflow="hidden" position="relative">
-            <Image src={imageUrl} alt={`Avatar de ${professional.nome}`} objectFit="cover" width="100%" height="100%" p={1} />
+            <Image src={imageUrl} alt={`Avatar de ${profissional.nome}`} objectFit="cover" width="100%" height="100%" p={1} />
         </Box>
         <Box px={3} py={3}>
             <Heading as="h4" size="sm" color={DarkText} mb={1} noOfLines={1}>
-                {professional.nome}
+                {profissional.nome}
             </Heading>
             <Text fontSize="xs" color={LightText} mb={1} noOfLines={1}>
-                {professional.categoria} {/* Usa categoria, que adaptamos de 'especialidade' */}
+                {profissional.categoria} {/* Usa categoria, que adaptamos de 'especialidade' */}
             </Text>
             <Text fontSize="md" fontWeight="bold" color={CustomGold}>
                 R$ {preco > 0 ? preco.toFixed(0) : 'N/A'}
@@ -211,7 +211,7 @@ export default function BuscarBartenders() {
             <SimpleGrid columns={{ base: 2, md: 3, lg: 4 }} spacing={6}>
               {currentBartenders.length > 0 ? (
                 currentBartenders.map(prof => (
-                  <ProfessionalCard key={prof.id} professional={prof} />
+                  <ProfessionalCard key={prof.id} profissional={prof} />
                 ))
               ) : (
                 <Text gridColumn="span 4" textAlign="center" fontSize="lg" color="gray.600">

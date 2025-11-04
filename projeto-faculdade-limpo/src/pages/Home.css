@@ -1,11 +1,11 @@
 .Capa {
     background-image: url('../assets/capa.png');
     background-size: cover; 
-    /*background-position: center bottom; */
+   
     background-repeat: no-repeat;
 } 
 .user-dropdown-toggle-no-caret::after {
-    /* Força a remoção da seta que tinha no icone de usuário */
+   
     display: none !important; 
     content: none !important;
 }

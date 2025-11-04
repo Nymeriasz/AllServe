@@ -24,7 +24,7 @@ export default function Footer() {
     fontSize: '0.9rem',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
-    marginBottom: '20px' // Espaço abaixo do título
+    marginBottom: '20px' 
   };
 
   // Estilo para os links ("Home", "Sobre", etc.)
@@ -40,7 +40,7 @@ export default function Footer() {
     <footer style={footerStyle}>
       <div style={containerStyle}>
 
-        {/* Coluna 1: Logo e Copyright */}
+       
         <div style={{ flexBasis: '30%', minWidth: '250px', marginBottom: '30px' }}>
           <h5 style={{ fontWeight: 'bold', marginBottom: '20px' }}>
             <span style={{ color: "#000" }}>All</span>
@@ -53,7 +53,7 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Coluna 2: Links */}
+      
         <div style={{ flexBasis: '15%', minWidth: '150px', marginBottom: '30px' }}>
           <h6 style={titleStyle}>Links</h6>
           <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -69,7 +69,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Coluna 3: Help */}
+     
         <div style={{ flexBasis: '20%', minWidth: '170px', marginBottom: '30px' }}>
           <h6 style={titleStyle}>Help</h6>
           <ul style={{ listStyle: 'none', padding: 0 }}>
@@ -85,7 +85,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Coluna 4: Newsletter */}
+        
         <div style={{ flexBasis: '30%', minWidth: '250px', marginBottom: '30px' }}>
           <h6 style={titleStyle}>Newsletter</h6>
           <form style={{ display: 'flex', alignItems: 'center' }}>
@@ -101,7 +101,7 @@ export default function Footer() {
                 marginRight: "15px",
                 outline: "none",
                 color: "#000",
-                flex: 1 // Faz o input crescer
+                flex: 1 
               }}
             />
             <button

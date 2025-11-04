@@ -1,5 +1,3 @@
-// src/pages/SignUp.jsx (Estilizado)
-
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
@@ -14,43 +12,41 @@ import {
   useToast,
   InputGroup,
   InputLeftAddon,
-  Container, // Adicionado
-  Spinner,   // Adicionado
-  Center,    // Adicionado
-  Link,      // Adicionado
-  Text       // Adicionado
+  Container, 
+  Spinner,   
+  Center,    
+  Link,      
+  Text       
 } from '@chakra-ui/react';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from '../firebase/config.js';
-
-// --- Cores do seu Home.jsx ---
-const CustomGold = "#A5874D";
-const DarkText = "#292728";
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('cliente');
   
-  // Novos estados para os campos do bartender
+
   const [especialidade, setEspecialidade] = useState('');
   const [precoPorHora, setPrecoPorHora] = useState('');
   const [fotoURL, setFotoURL] = useState('');
   
-  const [isLoading, setIsLoading] = useState(false); // Estado de loading
+  const [whatsapp, setWhatsapp] = useState('');
+  const [instagram, setInstagram] = useState('');
+  
+  const [isLoading, setIsLoading] = useState(false); 
   const navigate = useNavigate();
   const toast = useToast();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsLoading(true); // Ativa o loading
+    setIsLoading(true); 
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Monta o objeto do usuário com base no papel
       let userData = {
         uid: user.uid,
         email: user.email,
@@ -63,7 +59,10 @@ export default function SignUp() {
           especialidade,
           precoPorHora: Number(precoPorHora), 
           fotoURL,
-          nome: email.split('@')[0], // Usa a parte antes do @ como nome padrão
+          nome: email.split('@')[0],
+          
+          whatsapp: whatsapp,
+          instagram: instagram,
         };
       }
 
@@ -77,7 +76,7 @@ export default function SignUp() {
         duration: 5000,
         isClosable: true,
       });
-      navigate('/login'); // Manda para o login após o sucesso
+      navigate('/login'); 
 
     } catch (error) {
       console.error("Erro no cadastro:", error);
@@ -88,7 +87,7 @@ export default function SignUp() {
         duration: 5000,
         isClosable: true,
       });
-      setIsLoading(false); // Desativa o loading em caso de erro
+      setIsLoading(false); 
     }
   };
 
@@ -96,7 +95,7 @@ export default function SignUp() {
     <Container maxW="container.lg" py={{ base: 12, md: 20 }} centerContent>
       <Box 
         p={8} 
-        maxWidth="700px" // Aumentado para caber os campos de bartender
+        maxWidth="700px"
         width="100%"
         borderWidth={1} 
         borderRadius={8} 
@@ -104,11 +103,11 @@ export default function SignUp() {
         bg="white"
       >
         <VStack spacing={4}>
-          <Heading color={CustomGold}>Criar Conta</Heading>
+          <Heading color="primaria">Criar Conta</Heading>
           
           {isLoading ? (
             <Center h="300px">
-              <Spinner size="xl" color={CustomGold} />
+              <Spinner size="xl" color="primaria" />
             </Center>
           ) : (
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
@@ -120,7 +119,7 @@ export default function SignUp() {
                     placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    focusBorderColor={CustomGold}
+                    focusBorderColor="primaria" 
                   />
                 </FormControl>
                 
@@ -131,7 +130,7 @@ export default function SignUp() {
                     placeholder="Mínimo 6 caracteres"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    focusBorderColor={CustomGold}
+                    focusBorderColor="primaria" 
                   />
                 </FormControl>
 
@@ -140,18 +139,17 @@ export default function SignUp() {
                   <Select 
                     value={role} 
                     onChange={(e) => setRole(e.target.value)} 
-                    focusBorderColor={CustomGold}
+                    focusBorderColor="primaria" 
                   >
                     <option value="cliente">Cliente (Quero contratar)</option>
                     <option value="bartender">Bartender (Quero trabalhar)</option>
-                    {/* <option value="administrador">Administrador</option> */}
                   </Select>
                 </FormControl>
 
-                {/* Campos que aparecem apenas para bartenders */}
+               
                 {role === 'bartender' && (
                   <VStack spacing={4} w="100%" p={4} borderWidth={1} borderRadius="md" borderColor="gray.200">
-                    <Heading size="sm" color={DarkText}>Perfil do Bartender</Heading>
+                    <Heading size="sm" color="textoEscuro">Perfil do Bartender</Heading>
                     
                     <FormControl isRequired>
                       <FormLabel>Especialidade Principal</FormLabel>
@@ -160,7 +158,7 @@ export default function SignUp() {
                         placeholder="Ex: Drinks Clássicos, Mixologia"
                         value={especialidade}
                         onChange={(e) => setEspecialidade(e.target.value)}
-                        focusBorderColor={CustomGold}
+                        focusBorderColor="primaria"
                       />
                     </FormControl>
                     
@@ -173,7 +171,7 @@ export default function SignUp() {
                           placeholder="50"
                           value={precoPorHora}
                           onChange={(e) => setPrecoPorHora(e.target.value)}
-                          focusBorderColor={CustomGold}
+                          focusBorderColor="primaria"
                         />
                       </InputGroup>
                     </FormControl>
@@ -185,30 +183,58 @@ export default function SignUp() {
                         placeholder="https://exemplo.com/sua-foto.jpg"
                         value={fotoURL}
                         onChange={(e) => setFotoURL(e.target.value)}
-                        focusBorderColor={CustomGold}
+                        focusBorderColor="primaria"
                       />
+                    </FormControl>
+
+            
+                    <FormControl>
+                      <FormLabel>WhatsApp (apenas números)</FormLabel>
+                      <InputGroup>
+                        <InputLeftAddon>+</InputLeftAddon>
+                        <Input
+                          type="tel"
+                          placeholder="5583999998888"
+                          value={whatsapp}
+                          onChange={(e) => setWhatsapp(e.target.value)}
+                          focusBorderColor="primaria"
+                        />
+                      </InputGroup>
+                    </FormControl>
+
+                   
+                    <FormControl>
+                      <FormLabel>Instagram (apenas utilizador)</FormLabel>
+                      <InputGroup>
+                        <InputLeftAddon>@</InputLeftAddon>
+                        <Input
+                          type="text"
+                          placeholder="seu.usuario"
+                          value={instagram}
+                          onChange={(e) => setInstagram(e.target.value)}
+                          focusBorderColor="primaria"
+                        />
+                      </InputGroup>
                     </FormControl>
                   </VStack>
                 )}
 
                 <Button 
                   type="submit" 
-                  bg={CustomGold} 
-                  color="white" 
-                  _hover={{ bg: '#8C713B' }} 
+                  variant="principal" 
                   width="full"
                   size="lg"
                   mt={4}
-                  isLoading={isLoading} // Prop de loading
+                  isLoading={isLoading}
                 >
                   Cadastrar
                 </Button>
 
                 <Center mt={2}>
-                  <Link as={RouterLink} to="/login" fontSize="sm" color={DarkText}>
+                  <Link as={RouterLink} to="/login" fontSize="sm" color="textoEscuro">
                     <Text> 
                       Já tem uma conta?{' '}
-                      <Text as="span" color={CustomGold} fontWeight="bold">
+                      <Text as="span" color="primaria" fontWeight="bold">
                         Entre aqui
                       </Text>
                     </Text>

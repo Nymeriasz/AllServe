@@ -1,5 +1,3 @@
-// src/pages/ModerarAvaliacoes.jsx
-
 import { useEffect, useState } from 'react';
 import {
   Box,
@@ -27,7 +25,7 @@ export default function ModerarAvaliacoes() {
       const querySnapshot = await getDocs(q);
       const allAvaliations = querySnapshot.docs.map((doc) => ({
         id: doc.id,
-        bartenderId: doc.ref.parent.parent.id, // Pega o ID do bartender
+        bartenderId: doc.ref.parent.parent.id, 
         ...doc.data(),
       }));
       setAvaliations(allAvaliations);
@@ -48,7 +46,7 @@ export default function ModerarAvaliacoes() {
       await updateDoc(avaliacaoRef, {
         visivel: !currentStatus,
       });
-      // Atualiza o estado localmente para refletir a mudança
+      
       setAvaliations((prev) =>
         prev.map((av) =>
           av.id === avaliacaoId ? { ...av, visivel: !currentStatus } : av

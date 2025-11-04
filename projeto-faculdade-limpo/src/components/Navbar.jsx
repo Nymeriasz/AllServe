@@ -1,21 +1,23 @@
-// src/components/Navbar.jsx (Estilizado com Chakra UI - CARRINHO CORRIGIDO)
-
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Box, Flex, Link, Button, Heading, Text, Badge, Icon, HStack, Container } from '@chakra-ui/react';
+import { 
+  Box, 
+  Flex, 
+  Link, 
+  Button, 
+  Heading, 
+  Text, 
+  Badge, 
+  HStack, 
+  Container, 
+  Icon 
+} from '@chakra-ui/react';
+
+import { FaShoppingCart, FaUser, FaSignOutAlt } from 'react-icons/fa';
+
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config.js';
-
-// --- Cores do seu Home.jsx ---
-const PrimaryBg = "#E9E0D4";
-const CustomGold = "#A5874D";
-const DarkText = "#292728";
-
-// --- Componente para o ícone (assume FontAwesome) ---
-const FaIcon = ({ className }) => (
-  <Box as="i" className={className} fontSize="lg" color={DarkText} />
-);
 
 export default function Navbar() {
   const { currentUser } = useAuth();
@@ -34,25 +36,35 @@ export default function Navbar() {
   const cartItemCount = cart.length;
 
   return (
-    <Box bg={PrimaryBg} px={4} py={3} boxShadow="sm" color={DarkText}>
+    // USANDO O TEMA: bg="fundo" é #fff (branco)
+    <Box 
+      bg="fundo" 
+      px={4} 
+      py={3} 
+      boxShadow="sm" // var(--sombra-padrao)
+      color="textoEscuro"
+      position="sticky" // Para ficar no topo
+      top={0}
+      zIndex={1100} // Para ficar acima do conteúdo da página
+    >
       <Container maxW="container.xl">
         <Flex justify="space-between" align="center">
           
-          {/* 1. A Logomarca */}
+          {/* 1. Logomarca (usando cores do tema) */}
           <Heading as={RouterLink} to="/" size="lg" fontWeight="bold">
-            <Text as="span" color={DarkText}>All</Text>
-            <Text as="span" color={CustomGold}>Serve</Text>
+            <Text as="span" color="textoEscuro">All</Text>
+            <Text as="span" color="primaria">Serve</Text> {/* cor --cor-primaria */}
           </Heading>
 
-          {/* 2. Links de Navegação (Centralizados) */}
+          {/* 2. Links de Navegação (usando cores do tema) */}
           <HStack spacing={8} display={{ base: 'none', md: 'flex' }}>
-            <Link as={RouterLink} to="/" fontWeight="medium" _hover={{ color: CustomGold }}>
+            <Link as={RouterLink} to="/" fontWeight="medium" _hover={{ color: "primaria" }}>
               Início
             </Link>
-            <Link as={RouterLink} to="/sobre" fontWeight="medium" _hover={{ color: CustomGold }}>
+            <Link as={RouterLink} to="/sobre" fontWeight="medium" _hover={{ color: "primaria" }}>
               Sobre
             </Link>
-            <Link as={RouterLink} to="/profissionais" fontWeight="medium" _hover={{ color: CustomGold }}>
+            <Link as={RouterLink} to="/profissionais" fontWeight="medium" _hover={{ color: "primaria" }}>
               Profissionais
             </Link>
           </HStack>
@@ -60,10 +72,8 @@ export default function Navbar() {
           {/* 3. Ações do Usuário */}
           <HStack spacing={4} align="center">
             
-            {/* --- CORREÇÃO: ÍCONE DO CARRINHO MOVido PARA FORA --- */}
-            {/* Agora ele aparece mesmo se o usuário estiver deslogado */}
-            <Link as={RouterLink} to="/carrinho" aria-label="Carrinho" position="relative" p={2} _hover={{ color: CustomGold }}>
-              <FaIcon className="fa-solid fa-cart-shopping" />
+            <Link as={RouterLink} to="/carrinho" aria-label="Carrinho" position="relative" p={2} _hover={{ color: "primaria" }}>
+              <Icon as={FaShoppingCart} fontSize="lg" />
               {cartItemCount > 0 && (
                 <Badge
                   colorScheme="red"
@@ -85,32 +95,36 @@ export default function Navbar() {
             {/* 4. Lógica de Autenticação */}
             {currentUser ? (
               <>
-                {/* --- ESTADO LOGADO --- */}
-                <Link as={RouterLink} to="/dashboard" aria-label="Minha Conta" p={2} _hover={{ color: CustomGold }}>
-                  <FaIcon className="fa-regular fa-user" />
+                <Link as={RouterLink} to="/dashboard" aria-label="Minha Conta" p={2} _hover={{ color: "primaria" }}>
+                  <Icon as={FaUser} fontSize="lg" />
                 </Link>
                 
                 <Button
-                  leftIcon={<FaIcon className="fa-solid fa-right-from-bracket" />}
+                  leftIcon={<Icon as={FaSignOutAlt} />}
                   variant="link"
-                  color={DarkText}
+                  color="textoEscuro"
                   size="sm"
                   onClick={handleLogout}
-                  _hover={{ color: CustomGold }}
-                  display={{ base: 'none', md: 'flex' }} // Esconde texto "Sair" em telas pequenas
+                  _hover={{ color: "primaria" }}
+                  display={{ base: 'none', md: 'flex' }}
                 >
                   Sair
                 </Button>
               </>
             ) : (
               <>
-                {/* --- ESTADO DESLOGADO --- */}
-                {/* O Ícone de usuário agora leva para o Login */}
-                <Link as={RouterLink} to="/login" aria-label="Entrar" p={2} _hover={{ color: CustomGold }}>
-                  <FaIcon className="fa-regular fa-user" />
+                <Link as={RouterLink} to="/login" aria-label="Entrar" p={2} _hover={{ color: "primaria" }}>
+                  <Icon as={FaUser} fontSize="lg" />
                 </Link>
                 
-                <Button as={RouterLink} to="/signup" bg={CustomGold} color="white" size="sm" _hover={{ bg: '#8C713B' }} display={{ base: 'none', md: 'flex' }}>
+                {/* USANDO O TEMA: variant="principal" (do seu .botao-principal) */}
+                <Button 
+                  as={RouterLink} 
+                  to="/signup" 
+                  variant="principal" 
+                  size="sm"
+                  display={{ base: 'none', md: 'flex' }}
+                >
                   Criar Conta
                 </Button>
               </>

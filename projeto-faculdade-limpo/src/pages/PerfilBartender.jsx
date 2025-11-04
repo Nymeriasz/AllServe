@@ -23,7 +23,7 @@ const LoadingSpinner = () => (
   </Center>
 );
 
-// Componente StarRating (mantido como está, pois usa FontAwesome)
+
 const StarRating = ({ rating = 0 }) => {
   const fullStars = Math.floor(rating);
   const halfStar = rating % 1 >= 0.5;

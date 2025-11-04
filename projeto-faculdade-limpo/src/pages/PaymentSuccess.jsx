@@ -1,10 +1,8 @@
-// src/pages/PaymentSuccess.jsx (Estilizado)
-
 import { Box, Heading, Text, VStack, Button, Container, Center, Icon } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { CheckCircleIcon } from '@chakra-ui/icons'; // Ícone de sucesso do Chakra
 
-// --- Cores do seu Home.jsx ---
+
 const CustomGold = "#A5874D";
 
 export default function PaymentSuccess() {
@@ -21,7 +19,7 @@ export default function PaymentSuccess() {
         bg="white"
       >
         <VStack spacing={6}>
-          {/* Ícone de Sucesso */}
+        
           <Icon as={CheckCircleIcon} w={20} h={20} color="green.500" />
           
           <Heading color={CustomGold}>Pagamento Aprovado!</Heading>

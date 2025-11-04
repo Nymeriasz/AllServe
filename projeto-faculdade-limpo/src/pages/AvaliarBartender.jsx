@@ -14,12 +14,12 @@ import {
   HStack,
   Icon,
 } from '@chakra-ui/react';
-// REMOVEMOS A IMPORTAÇÃO DO REACT-ICONS
+
 import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 
-// CRIAMOS NOSSO PRÓPRIO COMPONENTE DE ESTRELA COM SVG
+
 const StarIcon = (props) => (
   <svg
     stroke="currentColor"
@@ -69,7 +69,7 @@ export default function AvaliarBartender() {
                   return (
                     <Icon
                       key={ratingValue}
-                      as={StarIcon} // USANDO NOSSO COMPONENTE
+                      as={StarIcon} 
                       boxSize={8}
                       color={ratingValue <= nota ? 'gold' : 'gray.300'}
                       cursor="pointer"

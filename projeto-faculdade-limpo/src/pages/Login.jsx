@@ -1,4 +1,4 @@
-// src/pages/Login.jsx (Corrigido)
+// src/pages/Login.jsx (Refatorado para o TEMA "Opção B")
 
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -16,14 +16,10 @@ import {
   Container,
   Spinner,
   Center,
-  Text // <-- Importação do Text
+  Text 
 } from '@chakra-ui/react';
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from '../firebase/config.js';
-
-// --- Cores do seu Home.jsx ---
-const CustomGold = "#A5874D";
-const DarkText = "#292728";
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -71,11 +67,13 @@ export default function Login() {
         bg="white"
       >
         <VStack spacing={4}>
-          <Heading color={CustomGold}>Entrar</Heading>
+          {/* 1. USANDO COR DO TEMA */}
+          <Heading color="primaria">Entrar</Heading>
           
           {isLoading ? (
             <Center h="200px">
-              <Spinner size="xl" color={CustomGold} />
+              {/* 2. USANDO COR DO TEMA */}
+              <Spinner size="xl" color="primaria" />
             </Center>
           ) : (
             <form onSubmit={handleSubmit} style={{ width: '100%' }}>
@@ -87,7 +85,7 @@ export default function Login() {
                     placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    focusBorderColor={CustomGold} 
+                    focusBorderColor="primaria" // Usando cor do tema
                   />
                 </FormControl>
                 
@@ -97,40 +95,33 @@ export default function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    focusBorderColor={CustomGold} 
+                    focusBorderColor="primaria" // Usando cor do tema
                   />
                 </FormControl>
                 
+                {/* 3. USANDO VARIANT DO TEMA */}
                 <Button 
                   type="submit" 
-                  bg={CustomGold} 
-                  color="white" 
-                  _hover={{ bg: '#8C713B' }} 
+                  variant="principal" //
                   width="full"
                   size="lg"
                   mt={4}
+                  isLoading={isLoading}
                 >
                   Entrar
                 </Button>
 
                 <Flex width="full" justify="space-between" align="center" mt={2}>
-                  
-                  {/* --- CORREÇÃO AQUI --- */}
-                  <Link as={RouterLink} to="/signup" fontSize="sm" color={DarkText}>
-                    {/* O erro acontecia porque você não pode ter texto solto
-                      ao lado de um componente <Text> dentro de um <Link>.
-                      A solução é "embrulhar" tudo em um único <Text>.
-                    */}
+                  <Link as={RouterLink} to="/signup" fontSize="sm" color="textoEscuro">
                     <Text> 
                       Não tem uma conta?{' '}
-                      <Text as="span" color={CustomGold} fontWeight="bold">
+                      <Text as="span" color="primaria" fontWeight="bold">
                         Crie aqui
                       </Text>
                     </Text>
                   </Link>
-                  {/* --- FIM DA CORREÇÃO --- */}
-
-                  <Link as={RouterLink} to="/forgot-password" fontSize="sm" color={CustomGold}>
+                  
+                  <Link as={RouterLink} to="/forgot-password" fontSize="sm" color="primaria">
                     Esqueci minha senha
                   </Link>
                 </Flex>

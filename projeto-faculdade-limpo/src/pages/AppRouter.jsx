@@ -1,6 +1,6 @@
-// src/pages/AppRouter.jsx  (O arquivo correto no seu projeto)
+// src/pages/AppRouter.jsx (CORRIGIDO)
 
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom'; 
 import Home from './Home.jsx'; 
 import Login from './Login.jsx'; 
 import SignUp from './SignUp.jsx'; 
@@ -23,6 +23,9 @@ import BuscarBartenders from './BuscarBartenders.jsx';
 import Checkout from './Checkout.jsx'; 
 import PaymentSuccess from './PaymentSuccess.jsx'; 
 import HistoricoPagamentos from './HistoricoPagamentos.jsx'; 
+
+// Importação da página Sobre
+import SobrePage from './SobrePage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -53,9 +56,14 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Rota 'Sobre' adicionada
+      {
+        path: 'sobre',
+        element: <SobrePage />,
+      },
       // Rotas de Avaliação
       {
-        path: 'bartenders',
+        path: 'bartenders', // Rota antiga (pode remover se não usar)
         element: (
           <ProtectedRoute>
             <ListaBartenders />
@@ -88,18 +96,28 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      // Rota de Busca
+      
+      
       {
-        path: 'buscar',
+        path: 'profissionais', 
         element: (
           <ProtectedRoute>
             <BuscarBartenders />
           </ProtectedRoute>
         ),
       },
-      // Rotas de Pagamento 
+
+     
       {
         path: 'checkout',
+        element: (
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        ),
+      },
+       {
+        path: 'carrinho',
         element: (
           <ProtectedRoute>
             <Checkout />
@@ -126,6 +144,4 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default function AppRouter() {
-  return <RouterProvider router={router} />;
-}
+export default router;

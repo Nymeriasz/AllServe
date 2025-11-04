@@ -1,5 +1,3 @@
-// src/pages/ForgotPassword.jsx (Estilizado)
-
 import { useState } from 'react';
 import {
   Box,
@@ -11,14 +9,14 @@ import {
   VStack,
   useToast,
   Text,
-  Container, // Adicionado
-  Spinner,   // Adicionado
-  Center     // Adicionado
+  Container, 
+  Spinner,   
+  Center     
 } from '@chakra-ui/react';
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from '../firebase/config.js';
 
-// --- Cores do seu Home.jsx ---
+
 const CustomGold = "#A5874D";
 
 export default function ForgotPassword() {
@@ -28,7 +26,7 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsLoading(true); // Ativa o loading
+    setIsLoading(true); 
 
     try {
       await sendPasswordResetEmail(auth, email);
@@ -39,7 +37,7 @@ export default function ForgotPassword() {
         duration: 5000,
         isClosable: true,
       });
-      // Em caso de sucesso, também desativamos o loading
+    
       setIsLoading(false); 
     } catch (error) {
       console.error("Erro ao enviar e-mail de recuperação:", error);
@@ -50,7 +48,7 @@ export default function ForgotPassword() {
         duration: 5000,
         isClosable: true,
       });
-      setIsLoading(false); // Desativa o loading em caso de erro
+      setIsLoading(false); 
     }
   };
 

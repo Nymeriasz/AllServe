@@ -1,5 +1,3 @@
-// src/pages/HistoricoPagamentos.jsx
-
 import { useEffect, useState } from 'react';
 import {
   Box,

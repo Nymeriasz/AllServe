@@ -1,5 +1,3 @@
-// src/pages/ListaBartenders.jsx
-
 import { useEffect, useState } from 'react';
 import {
   Box,

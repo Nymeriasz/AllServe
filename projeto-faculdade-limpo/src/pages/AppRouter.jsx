@@ -1,5 +1,3 @@
-// src/pages/AppRouter.jsx (CORRIGIDO)
-
 import { createBrowserRouter } from 'react-router-dom'; 
 import Home from './Home.jsx'; 
 import Login from './Login.jsx'; 
@@ -8,24 +6,18 @@ import Dashboard from './Dashboard.jsx';
 import ProtectedRoute from '../routes/ProtectedRoute.jsx'; 
 import Layout from '../components/Layout.jsx'; 
 import ForgotPassword from './ForgotPassword.jsx'; 
-
-// Importações das rotas de avaliação
 import ListaBartenders from './ListaBartenders.jsx'; 
 import AvaliarBartender from './AvaliarBartender.jsx'; 
 import PerfilBartender from './PerfilBartender.jsx'; 
 import ModerarAvaliacoes from './ModerarAvaliacoes.jsx';
 import AdminRoute from '../routes/AdminRoute.jsx'; 
-
-// Importação da rota de busca
 import BuscarBartenders from './BuscarBartenders.jsx'; 
-
-// Importações das rotas de pagamento 
 import Checkout from './Checkout.jsx'; 
 import PaymentSuccess from './PaymentSuccess.jsx'; 
 import HistoricoPagamentos from './HistoricoPagamentos.jsx'; 
-
-// Importação da página Sobre
 import SobrePage from './SobrePage.jsx';
+import MeusFavoritos from './MeusFavoritos.jsx';
+import EditarPerfil from './EditarPerfil.jsx';
 
 const router = createBrowserRouter([
   {
@@ -56,14 +48,34 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      // Rota 'Sobre' adicionada
+
       {
         path: 'sobre',
         element: <SobrePage />,
       },
-      // Rotas de Avaliação
+
       {
-        path: 'bartenders', // Rota antiga (pode remover se não usar)
+        path: 'meus-favoritos', 
+        element: (
+          <ProtectedRoute>
+            <MeusFavoritos />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: 'editar-perfil',
+        element: (
+          <ProtectedRoute>
+            <EditarPerfil />
+          </ProtectedRoute>
+        ),
+      },
+
+      
+
+      {
+        path: 'bartenders', 
         element: (
           <ProtectedRoute>
             <ListaBartenders />

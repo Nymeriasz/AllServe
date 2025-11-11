@@ -1,14 +1,16 @@
-// src/pages/Dashboard.jsx (Corrigido o import)
+// src/pages/Dashboard.jsx (Código Completo e Corrigido)
 
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/config';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; 
+import { auth, db, storage } from '../firebase/config'; // <-- Esta linha agora funciona
 import { useAuth } from '../context/AuthContext';
 import {
   Box, Container, Flex, Heading, Text, VStack, Button,
-  Image, Spinner, Center, HStack // <-- CORREÇÃO AQUI: HStack foi adicionado
+  Image, Spinner, Center, HStack,
+  FormControl, FormLabel, Input, useToast, Avatar 
 } from '@chakra-ui/react';
 
 // --- Cores do seu Home.jsx ---
@@ -40,12 +42,16 @@ const MenuButton = ({ isActive, onClick, iconClass, children }) => (
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
-  const [userData, setUserData] = useState(null);
+  const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('loading');
+  const [imageFile, setImageFile] = useState(null); 
+  const [uploadingImage, setUploadingImage] = useState(false); 
   const navigate = useNavigate();
+  const toast = useToast();
 
-  // --- Lógica de Busca de Dados (Mantida 100%) ---
+  // --- Lógica de Busca de Dados ---
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
@@ -56,13 +62,20 @@ export default function Dashboard() {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setUserData(data);
+          setFormData({
+            nome: data.nome || '',
+            telefone: data.telefone || '',
+            instagram: data.instagram || '',
+            fotoURL: data.fotoURL || '/img/avatar-exemplo.png', 
+            ...data
+          });
+          
           setActiveTab(
             data.role === 'administrador'
               ? 'admin'
               : data.role === 'bartender'
               ? 'meu-perfil'
-              : 'pedidos'
+              : 'editar-perfil'
           );
         } else {
           console.log('Usuário não encontrado!');
@@ -77,7 +90,7 @@ export default function Dashboard() {
     fetchUserData();
   }, [currentUser, navigate]);
 
-  // --- Lógica de Logout (Mantida 100%) ---
+  // --- Lógica de Logout ---
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -91,16 +104,101 @@ export default function Dashboard() {
     setActiveTab(tabName);
   };
 
-  if (loading || !userData) return <LoadingSpinner />;
+  // --- Funções para o Formulário de Edição ---
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
-  // --- JSX (Convertido para Chakra UI) ---
+  // Handler para a seleção de imagem
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  // Função para fazer upload da imagem para o Firebase Storage
+  const uploadImage = async () => {
+    if (!imageFile || !currentUser) return formData.fotoURL; 
+
+    setUploadingImage(true);
+    const fileRef = ref(storage, `profile_pictures/${currentUser.uid}/${imageFile.name}`);
+    try {
+      await uploadBytes(fileRef, imageFile);
+      const photoURL = await getDownloadURL(fileRef);
+      setUploadingImage(false);
+      setImageFile(null); 
+      return photoURL;
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error);
+      toast({
+        title: "Erro no upload da imagem.",
+        description: "Não foi possível enviar a foto de perfil.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setUploadingImage(false);
+      return formData.fotoURL; 
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    setIsSaving(true);
+    let newPhotoURL = formData.fotoURL;
+
+    if (imageFile) {
+      newPhotoURL = await uploadImage();
+      if (!newPhotoURL) {
+        setIsSaving(false);
+        return; 
+      }
+    }
+
+    try {
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userDocRef, {
+        nome: formData.nome,
+        telefone: formData.telefone,
+        instagram: formData.instagram,
+        fotoURL: newPhotoURL, 
+      });
+      
+      setFormData(prev => ({ ...prev, fotoURL: newPhotoURL }));
+
+      toast({
+        title: "Perfil Atualizado!",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Erro ao salvar.",
+        description: "Tente novamente.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+    setIsSaving(false);
+  };
+
+  if (loading || !formData) return <LoadingSpinner />;
+
+  // --- JSX ---
   return (
     <Container maxW="container.lg" py={{ base: 10, md: 16 }}>
       <Flex direction={{ base: 'column', md: 'row' }} gap={10}>
         
         {/* Coluna da Esquerda: Menu de Navegação */}
         <Box w={{ base: '100%', md: '300px' }} flexShrink={0}>
-          {/* Card de Informação do Usuário */}
+          {/* Card de Informação do Usuário (COM AVATAR) */}
           <VStack 
             spacing={4} 
             p={6} 
@@ -110,41 +208,22 @@ export default function Dashboard() {
             align="center" 
             mb={6}
           >
-            <Image
-              borderRadius="full"
-              boxSize="100px"
-              src={userData.fotoURL || '/img/avatar-exemplo.png'}
+            <Avatar
+              size="xl" 
+              name={formData.nome || 'Usuário'}
+              src={imageFile ? URL.createObjectURL(imageFile) : formData.fotoURL} 
               alt="Avatar"
-              objectFit="cover"
               border="3px solid"
               borderColor={CustomGold}
             />
-            <Heading size="md" color={DarkText}>Olá, {userData.nome || 'Usuário'}!</Heading>
-            <Text color="gray.600" fontSize="sm">{userData.email}</Text>
+            <Heading size="md" color={DarkText}>Olá, {formData.nome || 'Usuário'}!</Heading>
+            <Text color="gray.600" fontSize="sm">{formData.email}</Text>
           </VStack>
 
-          {/* Menu */}
+          {/* Menu (Com a correção do </MenuButton>) */}
           <VStack as="nav" align="stretch" spacing={2}>
-            {userData.role === 'cliente' && (
-              <>
-                <MenuButton
-                  isActive={activeTab === 'pedidos'}
-                  onClick={() => handleTabClick('pedidos')}
-                  iconClass="fa-solid fa-receipt"
-                >
-                  Meus Pedidos
-                </MenuButton>
-                <MenuButton
-                  isActive={activeTab === 'favoritos'}
-                  onClick={() => handleTabClick('favoritos')}
-                  iconClass="fa-regular fa-heart"
-                >
-                  Favoritos
-                </MenuButton>
-              </>
-            )}
-
-            {userData.role === 'bartender' && (
+            
+            {formData.role === 'bartender' && (
               <MenuButton
                 isActive={activeTab === 'meu-perfil'}
                 onClick={() => handleTabClick('meu-perfil')}
@@ -154,7 +233,7 @@ export default function Dashboard() {
               </MenuButton>
             )}
 
-            {userData.role === 'administrador' && (
+            {formData.role === 'administrador' && (
               <MenuButton
                 isActive={activeTab === 'admin'}
                 onClick={() => handleTabClick('admin')}
@@ -165,11 +244,19 @@ export default function Dashboard() {
             )}
             
             <MenuButton
-              isActive={activeTab === 'config'}
-              onClick={() => handleTabClick('config')}
-              iconClass="fa-solid fa-gear"
+              isActive={activeTab === 'editar-perfil'}
+              onClick={() => handleTabClick('editar-perfil')}
+              iconClass="fa-solid fa-user-pen"
             >
-              Configurações
+              Editar Perfil
+            </MenuButton> 
+
+            <MenuButton
+              isActive={activeTab === 'seguranca'}
+              onClick={() => handleTabClick('seguranca')}
+              iconClass="fa-solid fa-lock"
+            >
+              Alterar Senha
             </MenuButton>
 
             <Button
@@ -188,37 +275,83 @@ export default function Dashboard() {
 
         {/* Coluna da Direita: Conteúdo das Abas */}
         <Box flex={1} bg="white" p={8} borderRadius="md" boxShadow="sm">
-          {/* Painel de Pedidos */}
-          <Box display={activeTab === 'pedidos' ? 'block' : 'none'}>
-            <Heading size="lg" mb={6}>Meus Pedidos</Heading>
-            <Text mb={4}>Em breve: histórico de contratações.</Text>
-            {/* Exemplo de card (convertido) */}
-            <Flex borderWidth={1} borderRadius="md" p={4} align="center" justify="space-between">
-              <HStack spacing={4}> {/* <--- O HStack que estava causando o erro */}
-                <Image src="/img/hermione.png" alt="Exemplo" boxSize="60px" borderRadius="md" objectFit="cover" />
-                <Box>
-                  <Heading size="sm">Contratação de Barista (Exemplo)</Heading>
-                  <Text fontSize="sm">Profissional: <strong>Hermione Granger</strong></Text>
-                  <Text fontSize="sm" color="gray.600">Data: 25/10/2025</Text>
-                </Box>
-              </HStack>
-              <VStack align="flex-end">
-                <Text color="green.500" fontWeight="bold">Concluído</Text>
-                <Text fontWeight="bold" fontSize="lg">R$ 2.000,00</Text>
-              </VStack>
-            </Flex>
+          
+          {/* Painel de Editar Perfil (AGORA COM UPLOAD DE FOTO) */}
+          <Box display={activeTab === 'editar-perfil' ? 'block' : 'none'} as="form" onSubmit={handleSubmit}>
+            <Heading size="lg" mb={6}>Editar Perfil</Heading>
+            <VStack spacing={5}>
+              
+              {/* === O CAMPO PARA TROCAR FOTO ESTÁ AQUI === */}
+              <FormControl>
+                <FormLabel htmlFor="foto" color={DarkText}>Foto de Perfil</FormLabel>
+                <Input
+                  id="foto"
+                  name="foto"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  p={1}
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="md"
+                />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel htmlFor="nome" color={DarkText}>Nome Completo</FormLabel>
+                <Input
+                  id="nome"
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  focusBorderColor={CustomGold}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel htmlFor="telefone" color={DarkText}>Telefone (com DDD)</FormLabel>
+                <Input
+                  id="telefone"
+                  name="telefone"
+                  type="tel"
+                  placeholder="(XX) XXXXX-XXXX"
+                  value={formData.telefone}
+                  onChange={handleChange}
+                  focusBorderColor={CustomGold}
+                />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel htmlFor="instagram" color={DarkText}>Instagram (utilizador)</FormLabel>
+                <Input
+                  id="instagram"
+                  name="instagram"
+                  placeholder="ex: seu.utilizador"
+                  value={formData.instagram}
+                  onChange={handleChange}
+                  focusBorderColor={CustomGold}
+                />
+              </FormControl>
+              
+              <Button
+                type="submit"
+                bg={CustomGold}
+                color="white"
+                _hover={{ bg: '#8C713B' }}
+                size="lg"
+                w="full"
+                isLoading={isSaving || uploadingImage} 
+                loadingText={uploadingImage ? "Enviando foto..." : "Salvando..."}
+              >
+                Salvar Alterações
+              </Button>
+            </VStack>
           </Box>
 
-          {/* Painel de Favoritos */}
-          <Box display={activeTab === 'favoritos' ? 'block' : 'none'}>
-            <Heading size="lg" mb={6}>Meus Favoritos</Heading>
-            <Text>Nenhum profissional favorito ainda.</Text>
-          </Box>
-
-          {/* Painel de Configurações */}
-          <Box display={activeTab === 'config' ? 'block' : 'none'}>
-            <Heading size="lg" mb={6}>Configurações da Conta</Heading>
-            <Text>Em breve: alterar senha e dados de pagamento.</Text>
+          {/* Painel para Alterar Senha */}
+          <Box display={activeTab === 'seguranca' ? 'block' : 'none'}>
+            <Heading size="lg" mb={6}>Segurança</Heading>
+            <Text>Em breve: formulário para alterar a sua senha.</Text>
           </Box>
 
           {/* Painel de Bartender */}

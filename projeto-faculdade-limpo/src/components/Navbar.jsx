@@ -1,138 +1,146 @@
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Flex, 
-  Link, 
-  Button, 
-  Heading, 
-  Text, 
-  Badge, 
-  HStack, 
-  Container, 
-  Icon 
+// src/components/Navbar.jsx
+import {
+  Box, Flex, HStack, Link as ChakraLink, IconButton, Menu, MenuButton,
+  MenuList, MenuItem, Avatar, Button, useDisclosure, VStack, Text
 } from '@chakra-ui/react';
-
-import { FaShoppingCart, FaUser, FaSignOutAlt } from 'react-icons/fa';
-
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { FaShoppingCart, FaUser, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useCart } from '../context/CartContext.jsx';
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/config.js';
+import { auth } from '../firebase/config';
+
+const NavLink = ({ to, children, isActive }) => (
+  <ChakraLink
+    as={RouterLink}
+    to={to}
+    px={3}
+    py={2}
+    fontWeight="medium"
+    color={isActive ? '#c49b3f' : 'black'}
+    _hover={{ textDecoration: 'none', color: '#c49b3f' }}
+  >
+    {children}
+  </ChakraLink>
+);
 
 export default function Navbar() {
   const { currentUser } = useAuth();
-  const { cart } = useCart();
-  const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login');
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
     }
   };
 
-  const cartItemCount = cart.length;
-
   return (
-    // USANDO O TEMA: bg="fundo" é #fff (branco)
-    <Box 
-      bg="fundo" 
-      px={4} 
-      py={3} 
-      boxShadow="sm" // var(--sombra-padrao)
-      color="textoEscuro"
-      position="sticky" // Para ficar no topo
-      top={0}
-      zIndex={1100} // Para ficar acima do conteúdo da página
-    >
-      <Container maxW="container.xl">
-        <Flex justify="space-between" align="center">
+    <Box bg="white" px={6} boxShadow="sm">
+      <Flex h={16} alignItems="center" justifyContent="space-between" maxW="container.xl" mx="auto">
+        {/* Logo */}
+        <ChakraLink as={RouterLink} to="/" _hover={{ textDecoration: 'none' }}>
+          <Text fontSize="xl" fontWeight="bold">
+            <Text as="span" color="black">All</Text>
+            <Text as="span" color="#c49b3f">Serve</Text>
+          </Text>
+        </ChakraLink>
+
+        {/* Links Desktop */}
+        <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
+          <NavLink to="/" isActive={location.pathname === '/'}>Início</NavLink>
+          <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
+          <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
           
-          {/* 1. Logomarca (usando cores do tema) */}
-          <Heading as={RouterLink} to="/" size="lg" fontWeight="bold">
-            <Text as="span" color="textoEscuro">All</Text>
-            <Text as="span" color="primaria">Serve</Text> {/* cor --cor-primaria */}
-          </Heading>
+          {/* Links de Usuário REMOVIDOS daqui */}
+        </HStack>
 
-          {/* 2. Links de Navegação (usando cores do tema) */}
-          <HStack spacing={8} display={{ base: 'none', md: 'flex' }}>
-            <Link as={RouterLink} to="/" fontWeight="medium" _hover={{ color: "primaria" }}>
-              Início
-            </Link>
-            <Link as={RouterLink} to="/sobre" fontWeight="medium" _hover={{ color: "primaria" }}>
-              Sobre
-            </Link>
-            <Link as={RouterLink} to="/profissionais" fontWeight="medium" _hover={{ color: "primaria" }}>
-              Profissionais
-            </Link>
-          </HStack>
+        {/* Ícones Desktop */}
+        <HStack spacing={5} display={{ base: 'none', md: 'flex' }}>
+          <IconButton
+            icon={<FaSearch />}
+            aria-label="Pesquisar"
+            variant="ghost"
+            color="black"
+            fontSize="lg"
+            _hover={{ color: '#c49b3f', bg: 'transparent' }}
+          />
+          {currentUser ? (
+            <Menu>
+              <MenuButton as={Button} rounded="full" variant="link" cursor="pointer" minW={0}>
+                <Avatar size="sm" name={currentUser.email} />
+              </MenuButton>
+              {/* Menu do Avatar com TODOS os links */}
+              <MenuList>
+                <MenuItem as={RouterLink} to="/dashboard">Configurações</MenuItem>
+                <MenuItem as={RouterLink} to="/historico-pagamentos">Meus Pedidos</MenuItem>
+                <MenuItem as={RouterLink} to="/meus-favoritos">Favoritos</MenuItem>
+                <MenuItem onClick={handleLogout}>Sair</MenuItem>
+              </MenuList>
+            </Menu>
+          ) : (
+            <IconButton
+              as={RouterLink}
+              to="/login"
+              icon={<FaUser />}
+              aria-label="Entrar"
+              variant="ghost"
+              color="black"
+              fontSize="lg"
+              _hover={{ color: '#c49b3f', bg: 'transparent' }}
+            />
+          )}
+          <IconButton
+            as={RouterLink}
+            to="/carrinho"
+            icon={<FaShoppingCart />}
+            aria-label="Carrinho"
+            variant="ghost"
+            color="black"
+            fontSize="lg"
+            _hover={{ color: '#c49b3f', bg: 'transparent' }}
+          />
+        </HStack>
 
-          {/* 3. Ações do Usuário */}
-          <HStack spacing={4} align="center">
-            
-            <Link as={RouterLink} to="/carrinho" aria-label="Carrinho" position="relative" p={2} _hover={{ color: "primaria" }}>
-              <Icon as={FaShoppingCart} fontSize="lg" />
-              {cartItemCount > 0 && (
-                <Badge
-                  colorScheme="red"
-                  borderRadius="full"
-                  boxSize="18px"
-                  fontSize="0.7em"
-                  position="absolute"
-                  top="0"
-                  right="-5px"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  {cartItemCount}
-                </Badge>
-              )}
-            </Link>
+        {/* Menu Móvel */}
+        <IconButton
+          size="md"
+          icon={isOpen ? <FaTimes /> : <FaBars />}
+          aria-label="Abrir Menu"
+          display={{ md: 'none' }}
+          onClick={isOpen ? onClose : onOpen}
+          bg="transparent"
+          color="black"
+          _hover={{ color: '#c49b3f' }}
+        />
+      </Flex>
 
-            {/* 4. Lógica de Autenticação */}
+      {/* Menu Mobile */}
+      {isOpen ? (
+        <Box pb={4} display={{ md: 'none' }}>
+          <VStack as="nav" spacing={3} align="stretch">
+            <NavLink to="/" isActive={location.pathname === '/'}>Início</NavLink>
+            <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
+            <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
+            <hr />
             {currentUser ? (
               <>
-                <Link as={RouterLink} to="/dashboard" aria-label="Minha Conta" p={2} _hover={{ color: "primaria" }}>
-                  <Icon as={FaUser} fontSize="lg" />
-                </Link>
-                
-                <Button
-                  leftIcon={<Icon as={FaSignOutAlt} />}
-                  variant="link"
-                  color="textoEscuro"
-                  size="sm"
-                  onClick={handleLogout}
-                  _hover={{ color: "primaria" }}
-                  display={{ base: 'none', md: 'flex' }}
-                >
-                  Sair
-                </Button>
+                {/* Links de usuário no menu móvel (todos juntos) */}
+                <NavLink to="/dashboard">Configurações</NavLink>
+                <NavLink to="/historico-pagamentos">Meus Pedidos</NavLink>
+                <NavLink to="/meus-favoritos">Favoritos</NavLink>
+                <ChakraLink onClick={handleLogout} px={3} py={2}>Sair</ChakraLink>
               </>
             ) : (
               <>
-                <Link as={RouterLink} to="/login" aria-label="Entrar" p={2} _hover={{ color: "primaria" }}>
-                  <Icon as={FaUser} fontSize="lg" />
-                </Link>
-                
-                {/* USANDO O TEMA: variant="principal" (do seu .botao-principal) */}
-                <Button 
-                  as={RouterLink} 
-                  to="/signup" 
-                  variant="principal" 
-                  size="sm"
-                  display={{ base: 'none', md: 'flex' }}
-                >
-                  Criar Conta
-                </Button>
+                <NavLink to="/login">Entrar</NavLink>
+                <NavLink to="/signup">Cadastrar</NavLink>
               </>
             )}
-          </HStack>
-
-        </Flex>
-      </Container>
+          </VStack>
+        </Box>
+      ) : null}
     </Box>
   );
 }

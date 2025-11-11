@@ -1,8 +1,7 @@
-// src/firebase/config.js
-
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage"; // <-- 1. Importar o Storage
 
 const firebaseConfig = {
   apiKey: "AIzaSyCulyFGQNV-YqQr9H9Tjt4s6zsAIJYvJYI",
@@ -14,9 +13,9 @@ const firebaseConfig = {
   measurementId: "G-QS0CVGRRLN"
 };
 
-// Inicializa o Firebase
+
 const app = initializeApp(firebaseConfig);
 
-// Exporta os serviços
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app); 

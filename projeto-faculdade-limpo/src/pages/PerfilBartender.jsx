@@ -1,4 +1,4 @@
-// src/pages/PerfilBartender.jsx (Convertido para Chakra UI)
+// src/pages/PerfilBartender.jsx (Corrigido com coração maior)
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -9,8 +9,10 @@ import { useAuth } from '../context/AuthContext.jsx';
 import {
   Box, Container, Flex, Image, Heading, Text, Button, Input,
   HStack, VStack, Spinner, Center, Tag, Wrap, Link,
-  Tabs, TabList, TabPanels, Tab, TabPanel
+  Tabs, TabList, TabPanels, Tab, TabPanel,
+  IconButton
 } from '@chakra-ui/react';
+import { FaRegHeart, FaHeart } from 'react-icons/fa';
 
 // --- Cores do seu Home.jsx ---
 const CustomGold = "#A5874D";
@@ -40,15 +42,24 @@ const StarRating = ({ rating = 0 }) => {
 export default function PerfilBartender() {
   const { bartenderId } = useParams();
   const { addToCart } = useCart();
-  const { currentUser } = useAuth();
+  const { 
+    currentUser,
+    favorites, 
+    toggleFavorite, 
+    togglingFavoriteId,
+    isFavoritesLoading
+  } = useAuth();
   const navigate = useNavigate();
 
   const [bartender, setBartender] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avaliacoes, setAvaliations] = useState([]);
   const [mediaAvaliacao, setMediaAvaliacao] = useState(0);
-  const [activeTab, setActiveTab] = useState(0); // Mudado para 0 (índice da aba)
+  const [activeTab, setActiveTab] = useState(0); 
   const [quantity, setQuantity] = useState(1);
+  
+  const isFavorite = favorites.includes(bartenderId);
+  const isLoadingFavorite = togglingFavoriteId === bartenderId;
 
   const placeholderImage = '/img/avatar-placeholder.png';
 
@@ -156,9 +167,26 @@ export default function PerfilBartender() {
 
         {/* Coluna de Informações */}
         <VStack flexGrow={1} align="flex-start" spacing={4}>
-          <Heading as="h1" size="2xl" color={DarkText}>
-            {bartender.nome || (bartender.email || '').split('@')[0]}
-          </Heading>
+          
+          <HStack spacing={4} align="center">
+            <Heading as="h1" size="2xl" color={DarkText}>
+              {bartender.nome || (bartender.email || '').split('@')[0]}
+            </Heading>
+            
+            {currentUser && (
+              <IconButton
+                aria-label="Adicionar aos favoritos"
+                icon={isFavorite ? <FaHeart color="#c49b3f" /> : <FaRegHeart color="black" />}
+                variant="ghost"
+                size="3xl"
+                isRound
+                onClick={() => toggleFavorite(bartenderId)}
+                isLoading={isLoadingFavorite}
+                isDisabled={isFavoritesLoading}
+                _hover={{ color: '#c49b3f', bg: 'transparent' }}
+              />
+            )}
+          </HStack>
 
           <HStack spacing={4}>
             {bartender.telefone && (

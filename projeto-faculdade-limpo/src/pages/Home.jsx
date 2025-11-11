@@ -30,9 +30,9 @@ import Showman from '../assets/showman-icon.png';
 import Capa from '../assets/capa.png'; 
 
 const servicesData = [
-  { id: 'tradicional', name: 'Tradicional', title: 'Barman Clássico/Tradicional', description: 'Descrição detalhada...', imgSrc: Tradicional },
-  { id: 'barista', name: 'Barista', title: 'Especialista em Cafés', description: 'Descrição detalhada...', imgSrc: Barista },
-  { id: 'showman', name: 'Showman', title: 'Flair Bartender', description: 'Descrição detalhada...', imgSrc: Showman },
+  { id: 'tradicional', name: 'Tradicional', title: 'Barman Clássico/Tradicional', description: 'Muito requisitado em festas formais, jantares de gala e bares sofisticados, já que domina os coquetéis clássicos e o atendimento elegante.', imgSrc: Tradicional },
+  { id: 'barista', name: 'Barista', title: 'Especialista em Cafés', description: 'Profissional treinado para preparar e servir bebidas à base de café, com foco em arte e qualidade. Perfeito para eventos matinais ou de encerramento.', imgSrc: Barista },
+  { id: 'showman', name: 'Showman', title: 'Flair Bartender', description: 'Bartender que incorpora manobras acrobáticas com garrafas e utensílios, proporcionando um espetáculo visual e entretenimento para os convidados.', imgSrc: Showman },
 ];
 
 const InitialServiceCard = ({ service, onClick }) => (

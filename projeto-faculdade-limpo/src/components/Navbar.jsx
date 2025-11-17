@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import {
   Box, Flex, HStack, Link as ChakraLink, IconButton, Menu, MenuButton,
   MenuList, MenuItem, Avatar, Button, useDisclosure, VStack, Text
@@ -39,24 +38,19 @@ export default function Navbar() {
   return (
     <Box bg="white" px={6} boxShadow="sm">
       <Flex h={16} alignItems="center" justifyContent="space-between" maxW="container.xl" mx="auto">
-        {/* Logo */}
-        <ChakraLink as={RouterLink} to="/" _hover={{ textDecoration: 'none' }}>
+        <ChakraLink as={RouterLink} to="/home" _hover={{ textDecoration: 'none' }}>
           <Text fontSize="xl" fontWeight="bold">
             <Text as="span" color="black">All</Text>
             <Text as="span" color="#c49b3f">Serve</Text>
           </Text>
         </ChakraLink>
 
-        {/* Links Desktop */}
         <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
-          <NavLink to="/" isActive={location.pathname === '/'}>Início</NavLink>
+          <NavLink to="/home" isActive={location.pathname === '/home'}>Início</NavLink>
           <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
           <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
-          
-          {/* Links de Usuário REMOVIDOS daqui */}
         </HStack>
 
-        {/* Ícones Desktop */}
         <HStack spacing={5} display={{ base: 'none', md: 'flex' }}>
           <IconButton
             icon={<FaSearch />}
@@ -71,7 +65,6 @@ export default function Navbar() {
               <MenuButton as={Button} rounded="full" variant="link" cursor="pointer" minW={0}>
                 <Avatar size="sm" name={currentUser.email} />
               </MenuButton>
-              {/* Menu do Avatar com TODOS os links */}
               <MenuList>
                 <MenuItem as={RouterLink} to="/dashboard">Configurações</MenuItem>
                 <MenuItem as={RouterLink} to="/historico-pagamentos">Meus Pedidos</MenuItem>
@@ -103,7 +96,6 @@ export default function Navbar() {
           />
         </HStack>
 
-        {/* Menu Móvel */}
         <IconButton
           size="md"
           icon={isOpen ? <FaTimes /> : <FaBars />}
@@ -116,17 +108,15 @@ export default function Navbar() {
         />
       </Flex>
 
-      {/* Menu Mobile */}
       {isOpen ? (
         <Box pb={4} display={{ md: 'none' }}>
           <VStack as="nav" spacing={3} align="stretch">
-            <NavLink to="/" isActive={location.pathname === '/'}>Início</NavLink>
+            <NavLink to="/home" isActive={location.pathname === '/home'}>Início</NavLink>
             <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
             <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
             <hr />
             {currentUser ? (
               <>
-                {/* Links de usuário no menu móvel (todos juntos) */}
                 <NavLink to="/dashboard">Configurações</NavLink>
                 <NavLink to="/historico-pagamentos">Meus Pedidos</NavLink>
                 <NavLink to="/meus-favoritos">Favoritos</NavLink>

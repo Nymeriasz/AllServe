@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'; 
+import { createBrowserRouter, Navigate } from 'react-router-dom'; 
 import Home from './Home.jsx'; 
 import Login from './Login.jsx'; 
 import SignUp from './SignUp.jsx'; 
@@ -20,25 +20,34 @@ import MeusFavoritos from './MeusFavoritos.jsx';
 import EditarPerfil from './EditarPerfil.jsx';
 
 const router = createBrowserRouter([
+ 
+  {
+    path: '/login',
+    element: <Login />,
+  },
+
+  
+  {
+    path: '/signup',
+    element: <SignUp />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPassword />,
+  },
+
   {
     path: '/',
     element: <Layout />,
     children: [
       {
         index: true,
+       
+        element: <Navigate to="/login" replace />,
+      },
+      {
+        path: 'home', 
         element: <Home />,
-      },
-      {
-        path: 'login',
-        element: <Login />,
-      },
-      {
-        path: 'forgot-password',
-        element: <ForgotPassword />,
-      },
-      {
-        path: 'signup',
-        element: <SignUp />,
       },
       {
         path: 'dashboard',
@@ -48,12 +57,10 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-
       {
         path: 'sobre',
         element: <SobrePage />,
       },
-
       {
         path: 'meus-favoritos', 
         element: (
@@ -62,7 +69,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-
       {
         path: 'editar-perfil',
         element: (
@@ -71,9 +77,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-
-      
-
       {
         path: 'bartenders', 
         element: (
@@ -108,8 +111,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      
-      
       {
         path: 'profissionais', 
         element: (
@@ -118,8 +119,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-
-     
       {
         path: 'checkout',
         element: (

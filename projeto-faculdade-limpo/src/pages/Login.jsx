@@ -1,5 +1,3 @@
-// src/pages/Login.jsx (Refatorado para o TEMA "Opção B")
-
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
@@ -67,12 +65,11 @@ export default function Login() {
         bg="white"
       >
         <VStack spacing={4}>
-          {/* 1. USANDO COR DO TEMA */}
+  
           <Heading color="primaria">Entrar</Heading>
           
           {isLoading ? (
             <Center h="200px">
-              {/* 2. USANDO COR DO TEMA */}
               <Spinner size="xl" color="primaria" />
             </Center>
           ) : (
@@ -85,7 +82,7 @@ export default function Login() {
                     placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    focusBorderColor="primaria" // Usando cor do tema
+                    focusBorderColor="primaria" 
                   />
                 </FormControl>
                 
@@ -95,14 +92,14 @@ export default function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    focusBorderColor="primaria" // Usando cor do tema
+                    focusBorderColor="primaria"
                   />
                 </FormControl>
                 
-                {/* 3. USANDO VARIANT DO TEMA */}
+
                 <Button 
                   type="submit" 
-                  variant="principal" //
+                  variant="principal" 
                   width="full"
                   size="lg"
                   mt={4}

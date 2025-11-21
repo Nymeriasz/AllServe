@@ -7,6 +7,7 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null); 
   const [loading, setLoading] = useState(true);
 
   const [favorites, setFavorites] = useState([]);
@@ -14,48 +15,51 @@ export function AuthProvider({ children }) {
   const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFavorites = async (uid) => {
-      setIsFavoritesLoading(true);
-      const userDocRef = doc(db, 'users', uid); 
-      try {
-        const docSnap = await getDoc(userDocRef);
-        if (docSnap.exists() && docSnap.data().favorites) {
-          setFavorites(docSnap.data().favorites);
-        } else {
-          setFavorites([]); 
-        }
-      } catch (error) {
-        console.error("Erro ao buscar favoritos:", error);
-        setFavorites([]);
-      }
-      setIsFavoritesLoading(false);
-    };
-    
-    
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      
       if (user) {
-        fetchFavorites(user.uid);
+        setIsFavoritesLoading(true);
+        try {
+       
+          const userDocRef = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(userDocRef);
+          
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setFavorites(data.favorites || []);
+            setUserRole(data.role || null); 
+          } else {
+            setFavorites([]);
+            setUserRole(null);
+          }
+        } catch (error) {
+          console.error("Erro ao buscar dados do usuário:", error);
+          setFavorites([]);
+          setUserRole(null);
+        }
+        setIsFavoritesLoading(false);
       } else {
         setFavorites([]);
+        setUserRole(null);
         setIsFavoritesLoading(false);
       }
 
       setLoading(false);
     });
+
     return unsubscribe;
   }, []);
 
   const toggleFavorite = async (bartenderId) => {
-    if (!currentUser) return; // Não faz nada se não estiver logado
+    if (!currentUser) return; 
 
-    setTogglingFavoriteId(bartenderId); // Ativa o loading para este card
+    setTogglingFavoriteId(bartenderId); 
     const userDocRef = doc(db, 'users', currentUser.uid);
     const isCurrentlyFavorite = favorites.includes(bartenderId);
 
     try {
       if (isCurrentlyFavorite) {
-        // Remove
         await updateDoc(userDocRef, {
           favorites: arrayRemove(bartenderId)
         });
@@ -69,7 +73,6 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       console.error("Erro ao atualizar favoritos:", error);
-      
     }
     
     setTogglingFavoriteId(null); 
@@ -77,6 +80,7 @@ export function AuthProvider({ children }) {
 
   const value = {
     currentUser,
+    userRole, 
     loading,
     favorites,
     isFavoritesLoading,

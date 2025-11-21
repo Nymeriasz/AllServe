@@ -9,6 +9,7 @@ import ForgotPassword from './ForgotPassword.jsx';
 import ListaBartenders from './ListaBartenders.jsx'; 
 import AvaliarBartender from './AvaliarBartender.jsx'; 
 import PerfilBartender from './PerfilBartender.jsx'; 
+import PerfilEmpresa from './PerfilEmpresa.jsx';
 import ModerarAvaliacoes from './ModerarAvaliacoes.jsx';
 import AdminRoute from '../routes/AdminRoute.jsx'; 
 import BuscarBartenders from './BuscarBartenders.jsx'; 
@@ -69,6 +70,18 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
+      {
+        path: 'empresa/:empresaId',
+        element: (
+          <ProtectedRoute>
+            <PerfilEmpresa />
+          </ProtectedRoute>
+        ),
+      },
+      
+
+
       {
         path: 'editar-perfil',
         element: (
@@ -90,14 +103,6 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <PerfilBartender />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'avaliar/:bartenderId',
-        element: (
-          <ProtectedRoute>
-            <AvaliarBartender />
           </ProtectedRoute>
         ),
       },

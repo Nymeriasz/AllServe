@@ -5,8 +5,6 @@ import {
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { FaShoppingCart, FaUser, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext.jsx';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/config';
 
 const NavLink = ({ to, children, isActive }) => (
   <ChakraLink
@@ -23,21 +21,17 @@ const NavLink = ({ to, children, isActive }) => (
 );
 
 export default function Navbar() {
-  const { currentUser } = useAuth();
+  const { currentUser, userRole } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const location = useLocation();
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error);
-    }
-  };
+  const isBartender = userRole === 'bartender';
 
   return (
     <Box bg="white" px={6} boxShadow="sm">
       <Flex h={16} alignItems="center" justifyContent="space-between" maxW="container.xl" mx="auto">
+        
+        {/* Logo */}
         <ChakraLink as={RouterLink} to="/home" _hover={{ textDecoration: 'none' }}>
           <Text fontSize="xl" fontWeight="bold">
             <Text as="span" color="black">All</Text>
@@ -45,21 +39,27 @@ export default function Navbar() {
           </Text>
         </ChakraLink>
 
+        {/* Links Desktop */}
         <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
           <NavLink to="/home" isActive={location.pathname === '/home'}>Início</NavLink>
           <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
-          <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
+          {!isBartender && (
+            <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
+          )}
         </HStack>
 
         <HStack spacing={5} display={{ base: 'none', md: 'flex' }}>
-          <IconButton
-            icon={<FaSearch />}
-            aria-label="Pesquisar"
-            variant="ghost"
-            color="black"
-            fontSize="lg"
-            _hover={{ color: '#c49b3f', bg: 'transparent' }}
-          />
+          {!isBartender && (
+            <IconButton
+                icon={<FaSearch />}
+                aria-label="Pesquisar"
+                variant="ghost"
+                color="black"
+                fontSize="lg"
+                _hover={{ color: '#c49b3f', bg: 'transparent' }}
+            />
+          )}
+          
           {currentUser ? (
             <Menu>
               <MenuButton as={Button} rounded="full" variant="link" cursor="pointer" minW={0}>
@@ -67,9 +67,12 @@ export default function Navbar() {
               </MenuButton>
               <MenuList>
                 <MenuItem as={RouterLink} to="/dashboard">Configurações</MenuItem>
-                <MenuItem as={RouterLink} to="/historico-pagamentos">Meus Pedidos</MenuItem>
-                <MenuItem as={RouterLink} to="/meus-favoritos">Favoritos</MenuItem>
-                <MenuItem onClick={handleLogout}>Sair</MenuItem>
+                {!isBartender && (
+                  <>
+                    <MenuItem as={RouterLink} to="/historico-pagamentos">Meus Pedidos</MenuItem>
+                    <MenuItem as={RouterLink} to="/meus-favoritos">Favoritos</MenuItem>
+                  </>
+                )}
               </MenuList>
             </Menu>
           ) : (
@@ -84,16 +87,19 @@ export default function Navbar() {
               _hover={{ color: '#c49b3f', bg: 'transparent' }}
             />
           )}
-          <IconButton
-            as={RouterLink}
-            to="/carrinho"
-            icon={<FaShoppingCart />}
-            aria-label="Carrinho"
-            variant="ghost"
-            color="black"
-            fontSize="lg"
-            _hover={{ color: '#c49b3f', bg: 'transparent' }}
-          />
+
+          {!isBartender && (
+            <IconButton
+                as={RouterLink}
+                to="/carrinho"
+                icon={<FaShoppingCart />}
+                aria-label="Carrinho"
+                variant="ghost"
+                color="black"
+                fontSize="lg"
+                _hover={{ color: '#c49b3f', bg: 'transparent' }}
+            />
+          )}
         </HStack>
 
         <IconButton
@@ -107,20 +113,26 @@ export default function Navbar() {
           _hover={{ color: '#c49b3f' }}
         />
       </Flex>
-
       {isOpen ? (
         <Box pb={4} display={{ md: 'none' }}>
           <VStack as="nav" spacing={3} align="stretch">
             <NavLink to="/home" isActive={location.pathname === '/home'}>Início</NavLink>
             <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
-            <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
+            
+            {!isBartender && (
+                <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
+            )}
+            
             <hr />
             {currentUser ? (
               <>
                 <NavLink to="/dashboard">Configurações</NavLink>
-                <NavLink to="/historico-pagamentos">Meus Pedidos</NavLink>
-                <NavLink to="/meus-favoritos">Favoritos</NavLink>
-                <ChakraLink onClick={handleLogout} px={3} py={2}>Sair</ChakraLink>
+                {!isBartender && (
+                    <>
+                        <NavLink to="/historico-pagamentos">Meus Pedidos</NavLink>
+                        <NavLink to="/meus-favoritos">Favoritos</NavLink>
+                    </>
+                )}
               </>
             ) : (
               <>

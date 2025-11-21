@@ -2,38 +2,38 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
 
-  // Estilo do container principal do footer
+ 
   const footerStyle = {
-    backgroundColor: "#f3e6cf", // Fundo bege claro
+    backgroundColor: "#f3e6cf",
     padding: "60px 0"
   };
 
-  // Estilo do container interno (imita o .container do Bootstrap)
+  
   const containerStyle = {
-    maxWidth: '1140px', // Largura máxima
+    maxWidth: '1140px',
     margin: '0 auto',
     padding: '0 15px',
-    display: 'flex', // USA FLEXBOX
-    flexWrap: 'wrap', // Permite quebrar linha em telas menores
-    justifyContent: 'space-between' // Espaço entre colunas
+    display: 'flex',
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between' 
   };
 
-  // Estilo para os títulos ("Links", "Help", "Newsletter")
+  
   const titleStyle = {
-    color: "#6c757d", // Cinza suave
+    color: "#6c757d",
     fontSize: '0.9rem',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
     marginBottom: '20px' 
   };
 
-  // Estilo para os links ("Home", "Sobre", etc.)
+  
   const linkStyle = {
-    color: "#212529", // Preto suave
+    color: "#212529", 
     textDecoration: "none",
     fontSize: '1rem',
-    display: 'block', // Para que fiquem um abaixo do outro
-    marginBottom: '10px' // Espaçamento entre os links
+    display: 'block',
+    marginBottom: '10px' 
   };
 
   return (

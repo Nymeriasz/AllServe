@@ -1,88 +1,58 @@
-// src/pages/Dashboard.jsx (Código Completo e Corrigido)
-
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; 
-import { auth, db, storage } from '../firebase/config'; // <-- Esta linha agora funciona
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { auth, db } from '../firebase/config'; 
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext'; 
 import {
-  Box, Container, Flex, Heading, Text, VStack, Button,
-  Image, Spinner, Center, HStack,
-  FormControl, FormLabel, Input, useToast, Avatar 
+  Box, Container, Heading, Text, VStack, HStack, Button,
+  Spinner, Center, useToast, Avatar, 
+  Card, CardBody, Badge, Icon, Flex, Divider,
+  Menu, MenuButton, MenuList, MenuItem, AvatarBadge,
+  Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton,
+  useDisclosure
 } from '@chakra-ui/react';
+import { 
+  FaUserEdit, FaCheckCircle, FaCreditCard, FaClock, 
+  FaSignOutAlt, FaExternalLinkAlt, FaBell, FaListUl 
+} from 'react-icons/fa'; 
 
-// --- Cores do seu Home.jsx ---
+import BartenderDashboard from './BartenderDashboard'; 
+
 const CustomGold = "#A5874D";
 const DarkText = "#292728";
 
-const LoadingSpinner = () => (
-  <Center h="50vh">
-    <Spinner size="xl" color={CustomGold} />
-    <Text ml={4}>Carregando dados do usuário...</Text>
-  </Center>
-);
-
-// Componente para os botões do menu
-const MenuButton = ({ isActive, onClick, iconClass, children }) => (
-  <Button
-    variant={isActive ? "solid" : "ghost"}
-    bg={isActive ? CustomGold : "transparent"}
-    color={isActive ? "white" : DarkText}
-    _hover={{ bg: isActive ? '#8C713B' : 'gray.100' }}
-    justifyContent="flex-start"
-    w="100%"
-    leftIcon={<Box as="i" className={iconClass} mr={2} />}
-    onClick={onClick}
-  >
-    {children}
-  </Button>
-);
-
 export default function Dashboard() {
   const { currentUser } = useAuth();
-  const [formData, setFormData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('loading');
-  const [imageFile, setImageFile] = useState(null); 
-  const [uploadingImage, setUploadingImage] = useState(false); 
+  const { addToCart } = useCart(); 
   const navigate = useNavigate();
   const toast = useToast();
+  
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // --- Lógica de Busca de Dados ---
+  const [formData, setFormData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [minhasSolicitacoes, setMinhasSolicitacoes] = useState([]);
+  const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(true);
+
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
       return;
     }
+    
     const fetchUserData = async () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setFormData({
-            nome: data.nome || '',
-            telefone: data.telefone || '',
-            instagram: data.instagram || '',
-            fotoURL: data.fotoURL || '/img/avatar-exemplo.png', 
-            ...data
-          });
-          
-          setActiveTab(
-            data.role === 'administrador'
-              ? 'admin'
-              : data.role === 'bartender'
-              ? 'meu-perfil'
-              : 'editar-perfil'
-          );
+          setFormData({ ...data });
         } else {
-          console.log('Usuário não encontrado!');
           navigate('/login');
         }
       } catch (err) {
-        console.error('Erro ao buscar dados:', err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -90,289 +60,223 @@ export default function Dashboard() {
     fetchUserData();
   }, [currentUser, navigate]);
 
-  // --- Lógica de Logout ---
+  useEffect(() => {
+    if (currentUser && formData && formData.role !== 'bartender') {
+        const q = query(collection(db, 'solicitacoes'), where('clienteId', '==', currentUser.uid));
+        const unsubscribe = onSnapshot(q, (snap) => {
+            const lista = [];
+            snap.forEach(doc => lista.push({id: doc.id, ...doc.data()}));
+            lista.sort((a, b) => {
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+                return dateB - dateA;
+            });
+            setMinhasSolicitacoes(lista);
+            setLoadingSolicitacoes(false);
+        });
+        return () => unsubscribe();
+    }
+  }, [currentUser, formData]);
+
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (err) {
-      console.error('Erro ao sair:', err);
-    }
+    await signOut(auth);
+    navigate('/login');
   };
 
-  const handleTabClick = (tabName) => {
-    setActiveTab(tabName);
+  const handleProcederPagamento = (solicitacao) => {
+    addToCart({
+        id: solicitacao.bartenderId,
+        nome: solicitacao.bartenderNome || "Bartender",
+        precoPorHora: Number(solicitacao.valor) || 0, 
+        imagem: solicitacao.bartenderFoto || '/img/avatar-placeholder.png',
+        quantity: 1 
+    });
+    navigate('/carrinho'); 
   };
 
-  // --- Funções para o Formulário de Edição ---
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const novasRespostas = minhasSolicitacoes.filter(s => s.status === 'aceito' || s.status === 'recusado').length;
 
-  // Handler para a seleção de imagem
-  const handleImageChange = (e) => {
-    if (e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-    }
-  };
+  if (loading || !formData) return (
+    <Center h="50vh"><Spinner size="xl" color={CustomGold} /><Text ml={4}>Carregando...</Text></Center>
+  );
 
-  // Função para fazer upload da imagem para o Firebase Storage
-  const uploadImage = async () => {
-    if (!imageFile || !currentUser) return formData.fotoURL; 
+  if (formData.role === 'bartender') {
+    return <BartenderDashboard userData={formData} />;
+  }
 
-    setUploadingImage(true);
-    const fileRef = ref(storage, `profile_pictures/${currentUser.uid}/${imageFile.name}`);
-    try {
-      await uploadBytes(fileRef, imageFile);
-      const photoURL = await getDownloadURL(fileRef);
-      setUploadingImage(false);
-      setImageFile(null); 
-      return photoURL;
-    } catch (error) {
-      console.error("Erro ao fazer upload da imagem:", error);
-      toast({
-        title: "Erro no upload da imagem.",
-        description: "Não foi possível enviar a foto de perfil.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      setUploadingImage(false);
-      return formData.fotoURL; 
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    setIsSaving(true);
-    let newPhotoURL = formData.fotoURL;
-
-    if (imageFile) {
-      newPhotoURL = await uploadImage();
-      if (!newPhotoURL) {
-        setIsSaving(false);
-        return; 
-      }
-    }
-
-    try {
-      const userDocRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(userDocRef, {
-        nome: formData.nome,
-        telefone: formData.telefone,
-        instagram: formData.instagram,
-        fotoURL: newPhotoURL, 
-      });
-      
-      setFormData(prev => ({ ...prev, fotoURL: newPhotoURL }));
-
-      toast({
-        title: "Perfil Atualizado!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
-
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Erro ao salvar.",
-        description: "Tente novamente.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-    setIsSaving(false);
-  };
-
-  if (loading || !formData) return <LoadingSpinner />;
-
-  // --- JSX ---
   return (
-    <Container maxW="container.lg" py={{ base: 10, md: 16 }}>
-      <Flex direction={{ base: 'column', md: 'row' }} gap={10}>
+    <Box bg="gray.50" minH="calc(100vh - 64px)" py={10}>
+      <Container maxW="container.md">
         
-        {/* Coluna da Esquerda: Menu de Navegação */}
-        <Box w={{ base: '100%', md: '300px' }} flexShrink={0}>
-          {/* Card de Informação do Usuário (COM AVATAR) */}
-          <VStack 
-            spacing={4} 
-            p={6} 
-            bg="gray.50" 
-            borderRadius="md" 
-            boxShadow="sm" 
-            align="center" 
-            mb={6}
-          >
-            <Avatar
-              size="xl" 
-              name={formData.nome || 'Usuário'}
-              src={imageFile ? URL.createObjectURL(imageFile) : formData.fotoURL} 
-              alt="Avatar"
-              border="3px solid"
-              borderColor={CustomGold}
-            />
-            <Heading size="md" color={DarkText}>Olá, {formData.nome || 'Usuário'}!</Heading>
-            <Text color="gray.600" fontSize="sm">{formData.email}</Text>
-          </VStack>
-
-          {/* Menu (Com a correção do </MenuButton>) */}
-          <VStack as="nav" align="stretch" spacing={2}>
-            
-            {formData.role === 'bartender' && (
-              <MenuButton
-                isActive={activeTab === 'meu-perfil'}
-                onClick={() => handleTabClick('meu-perfil')}
-                iconClass="fa-solid fa-user-tie"
-              >
-                Meu Perfil
-              </MenuButton>
-            )}
-
-            {formData.role === 'administrador' && (
-              <MenuButton
-                isActive={activeTab === 'admin'}
-                onClick={() => handleTabClick('admin')}
-                iconClass="fa-solid fa-shield-halved"
-              >
-                Painel Admin
-              </MenuButton>
-            )}
-            
-            <MenuButton
-              isActive={activeTab === 'editar-perfil'}
-              onClick={() => handleTabClick('editar-perfil')}
-              iconClass="fa-solid fa-user-pen"
-            >
-              Editar Perfil
-            </MenuButton> 
-
-            <MenuButton
-              isActive={activeTab === 'seguranca'}
-              onClick={() => handleTabClick('seguranca')}
-              iconClass="fa-solid fa-lock"
-            >
-              Alterar Senha
-            </MenuButton>
-
-            <Button
-              variant="ghost"
-              color="red.500"
-              _hover={{ bg: 'red.50' }}
-              justifyContent="flex-start"
-              w="100%"
-              leftIcon={<Box as="i" className="fa-solid fa-right-from-bracket" mr={2} />}
-              onClick={handleLogout}
-            >
-              Sair
-            </Button>
-          </VStack>
-        </Box>
-
-        {/* Coluna da Direita: Conteúdo das Abas */}
-        <Box flex={1} bg="white" p={8} borderRadius="md" boxShadow="sm">
+        <Card bg="white" shadow="lg" borderRadius="xl" overflow="visible">
           
-          {/* Painel de Editar Perfil (AGORA COM UPLOAD DE FOTO) */}
-          <Box display={activeTab === 'editar-perfil' ? 'block' : 'none'} as="form" onSubmit={handleSubmit}>
-            <Heading size="lg" mb={6}>Editar Perfil</Heading>
-            <VStack spacing={5}>
-              
-              {/* === O CAMPO PARA TROCAR FOTO ESTÁ AQUI === */}
-              <FormControl>
-                <FormLabel htmlFor="foto" color={DarkText}>Foto de Perfil</FormLabel>
-                <Input
-                  id="foto"
-                  name="foto"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  p={1}
-                  border="1px solid"
-                  borderColor="gray.200"
-                  borderRadius="md"
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel htmlFor="nome" color={DarkText}>Nome Completo</FormLabel>
-                <Input
-                  id="nome"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleChange}
-                  focusBorderColor={CustomGold}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel htmlFor="telefone" color={DarkText}>Telefone (com DDD)</FormLabel>
-                <Input
-                  id="telefone"
-                  name="telefone"
-                  type="tel"
-                  placeholder="(XX) XXXXX-XXXX"
-                  value={formData.telefone}
-                  onChange={handleChange}
-                  focusBorderColor={CustomGold}
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel htmlFor="instagram" color={DarkText}>Instagram (utilizador)</FormLabel>
-                <Input
-                  id="instagram"
-                  name="instagram"
-                  placeholder="ex: seu.utilizador"
-                  value={formData.instagram}
-                  onChange={handleChange}
-                  focusBorderColor={CustomGold}
-                />
-              </FormControl>
-              
-              <Button
-                type="submit"
-                bg={CustomGold}
-                color="white"
-                _hover={{ bg: '#8C713B' }}
-                size="lg"
-                w="full"
-                isLoading={isSaving || uploadingImage} 
-                loadingText={uploadingImage ? "Enviando foto..." : "Salvando..."}
+          {/* --- BANNER COM GRADIENTE DOURADO (IGUAL AO BARTENDER) --- */}
+          <Box h="120px" bgGradient="linear(to-r, #c49b3f, #e5b64e)" borderRadius="xl xl 0 0"></Box>
+          
+          <CardBody textAlign="center" mt="-60px">
+            
+            <Menu>
+              <MenuButton 
+                as={Button} 
+                rounded="full" 
+                variant="unstyled" 
+                cursor="pointer" 
+                minW={0}
+                w="auto" h="auto"
+                _hover={{ transform: 'scale(1.05)' }}
               >
-                Salvar Alterações
-              </Button>
+                <Avatar 
+                  size="2xl" 
+                  name={formData.nome} 
+                  src={formData.fotoURL} 
+                  border="6px solid white"
+                  boxShadow="md"
+                >
+                  <AvatarBadge 
+                    boxSize="1.2em" 
+                    bg={novasRespostas > 0 ? "red.500" : "green.500"} 
+                    border="3px solid white"
+                  >
+                    {novasRespostas > 0 && (
+                      <Text fontSize="xs" color="white" fontWeight="bold">{novasRespostas}</Text>
+                    )}
+                  </AvatarBadge>
+                </Avatar>
+              </MenuButton>
+
+              <MenuList fontSize="md" color="gray.700" zIndex={10} boxShadow="xl">
+                <Box px={3} py={2}>
+                  <Text fontWeight="bold" fontSize="sm" color="gray.500">MENU DA EMPRESA</Text>
+                </Box>
+                <Divider />
+                
+                <MenuItem onClick={onOpen} icon={<FaBell color={novasRespostas > 0 ? "red" : "gray"} />}>
+                  Minhas Solicitações
+                  {novasRespostas > 0 && (
+                    <Badge ml={2} colorScheme="red" borderRadius="full">{novasRespostas} Atualizações</Badge>
+                  )}
+                </MenuItem>
+
+                <MenuItem onClick={() => navigate('/editar-perfil')} icon={<FaUserEdit />}>
+                  Editar Credenciais
+                </MenuItem>
+
+                <MenuItem as={Link} to={`/empresa/${currentUser.uid}`} icon={<FaExternalLinkAlt />}>
+                  Ver Perfil Público
+                </MenuItem>
+
+                <Divider my={1} />
+                
+                <MenuItem onClick={handleLogout} icon={<FaSignOutAlt />} color="red.500">
+                  Sair
+                </MenuItem>
+              </MenuList>
+            </Menu>
+
+            <VStack spacing={1} mt={4}>
+              <Heading size="lg" color="#292728">{formData.nome}</Heading>
+              <Text color="gray.500">{formData.tipo || "Cliente / Empresa"}</Text>
             </VStack>
-          </Box>
 
-          {/* Painel para Alterar Senha */}
-          <Box display={activeTab === 'seguranca' ? 'block' : 'none'}>
-            <Heading size="lg" mb={6}>Segurança</Heading>
-            <Text>Em breve: formulário para alterar a sua senha.</Text>
-          </Box>
+            <Box mt={8} p={6} maxW="500px" mx="auto" bg="gray.50" borderRadius="lg" border="1px dashed" borderColor="gray.200">
+               <VStack spacing={2}>
+                  <Icon as={FaListUl} w={6} h={6} color="gray.400" />
+                  <Text color="gray.500" fontWeight="medium">Painel de Controle</Text>
+                  <Text fontSize="sm" color="gray.400">
+                    {minhasSolicitacoes.length > 0 
+                      ? `Você enviou ${minhasSolicitacoes.length} solicitações. Clique na foto para gerenciar.` 
+                      : "Você ainda não fez nenhuma solicitação."}
+                  </Text>
+                  {minhasSolicitacoes.length > 0 && (
+                    <Button size="sm" colorScheme="yellow" variant="link" onClick={onOpen}>
+                      Ver Acompanhamento
+                    </Button>
+                  )}
+               </VStack>
+            </Box>
 
-          {/* Painel de Bartender */}
-          <Box display={activeTab === 'meu-perfil' ? 'block' : 'none'}>
-            <Heading size="lg" mb={6}>Meu Perfil de Bartender</Heading>
-            <Text mb={4}>Aqui você poderá editar suas informações, preço e biografia.</Text>
-            <Button as={Link} to={`/bartender/${currentUser.uid}`} bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>
-              Ver meu Perfil Público
-            </Button>
-          </Box>
+          </CardBody>
+        </Card>
 
-          {/* Painel de Admin */}
-          <Box display={activeTab === 'admin' ? 'block' : 'none'}>
-            <Heading size="lg" mb={6}>Painel do Administrador</Heading>
-            <Text mb={4}>Gerenciamento do sistema.</Text>
-            <Button as={Link} to="/admin/moderar-avaliacoes" bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>
-              Moderar Avaliações
-            </Button>
-          </Box>
-        </Box>
-      </Flex>
-    </Container>
+        <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
+          <ModalOverlay backdropFilter="blur(5px)" />
+          <ModalContent>
+            <ModalHeader borderBottom="1px solid" borderColor="gray.100">
+               Minhas Solicitações
+               <Text fontSize="sm" fontWeight="normal" color="gray.500">
+                 Acompanhe o status dos seus pedidos.
+               </Text>
+            </ModalHeader>
+            <ModalCloseButton />
+            
+            <ModalBody bg="gray.50" p={6}>
+              {loadingSolicitacoes ? (
+                 <Center h="200px"><Spinner size="xl" color={CustomGold} /></Center>
+              ) : minhasSolicitacoes.length === 0 ? (
+                 <Center h="200px" flexDirection="column">
+                    <Icon as={FaListUl} w={12} h={12} color="gray.300" mb={4} />
+                    <Text color="gray.500">Nenhuma solicitação enviada.</Text>
+                    <Button as={Link} to="/profissionais" mt={4} size="sm" colorScheme="yellow" bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>
+                        Buscar Profissionais
+                    </Button>
+                 </Center>
+              ) : (
+                 <VStack spacing={4} align="stretch">
+                     {minhasSolicitacoes.map((solicitacao) => (
+                         <Card key={solicitacao.id} borderLeft="4px solid" borderColor={
+                            solicitacao.status === 'aceito' ? 'green.400' : 
+                            solicitacao.status === 'recusado' ? 'red.400' : 'orange.400'
+                         } shadow="sm">
+                             <CardBody>
+                                 <Flex justify="space-between" align="center" wrap="wrap" gap={4}>
+                                     <Box>
+                                         <Heading size="sm" color={DarkText} mb={1}>{solicitacao.bartenderNome}</Heading>
+                                         <Text fontSize="sm" color="gray.600" fontWeight="bold">{solicitacao.evento}</Text>
+                                         <HStack fontSize="xs" color="gray.500" mt={1}>
+                                            <Icon as={FaClock} />
+                                            <Text>{solicitacao.data} às {solicitacao.horario}</Text>
+                                         </HStack>
+                                     </Box>
+                                     
+                                     <VStack align="end">
+                                        {solicitacao.status === 'pendente' && (
+                                            <Badge colorScheme="orange" p={2} borderRadius="md">
+                                                Aguardando...
+                                            </Badge>
+                                        )}
+                                        {solicitacao.status === 'recusado' && (
+                                            <Badge colorScheme="red" p={2} borderRadius="md">Recusado</Badge>
+                                        )}
+                                        {solicitacao.status === 'aceito' && (
+                                            <VStack align="end">
+                                                <Badge colorScheme="green" p={2} borderRadius="md">
+                                                    <Icon as={FaCheckCircle} mr={1}/> Aceito!
+                                                </Badge>
+                                                <Button 
+                                                    size="sm" 
+                                                    colorScheme="green" 
+                                                    leftIcon={<FaCreditCard />}
+                                                    onClick={() => {
+                                                        onClose();
+                                                        handleProcederPagamento(solicitacao);
+                                                    }}
+                                                >
+                                                    Contratar / Pagar
+                                                </Button>
+                                            </VStack>
+                                        )}
+                                     </VStack>
+                                 </Flex>
+                             </CardBody>
+                         </Card>
+                     ))}
+                 </VStack>
+              )}
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+
+      </Container>
+    </Box>
   );
 }

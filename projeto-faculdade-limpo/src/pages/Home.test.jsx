@@ -1,5 +1,3 @@
-// src/pages/Home.test.jsx
-
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import Home from './Home';
@@ -13,7 +11,6 @@ describe('Home Component', () => {
     expect(headingElement).toBeInTheDocument();
   });
 
-  // adicionar mais testes para o novo conteúdo da Home:
   it('deve renderizar a seção "Nossos serviços"', () => {
     render(<Home />);
     const servicesHeading = screen.getByRole('heading', { name: /Nossos serviços/i });

@@ -1,5 +1,3 @@
-// src/components/AdminPanel.jsx
-
 import { Box, Heading, Text, VStack, Divider } from '@chakra-ui/react';
 
 export default function AdminPanel() {

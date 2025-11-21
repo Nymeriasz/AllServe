@@ -1,5 +1,3 @@
-// src/pages/MeusFavoritos.jsx (Corrigido)
-
 import { useEffect, useState } from 'react';
 import { 
   Box, Heading, Text, Spinner, Alert, AlertIcon, 
@@ -90,8 +88,6 @@ export default function MeusFavoritos() {
       <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
         {favoriteBartenders.map(bartender => (
           
-          // --- A CORREÇÃO ESTÁ AQUI ---
-          // Passamos 'hideAddToCart={true}'
           <BartenderCard 
             key={bartender.id} 
             bartender={bartender} 

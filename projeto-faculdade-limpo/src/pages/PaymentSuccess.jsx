@@ -1,6 +1,6 @@
 import { Box, Heading, Text, VStack, Button, Container, Center, Icon } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
-import { CheckCircleIcon } from '@chakra-ui/icons'; // Ícone de sucesso do Chakra
+import { CheckCircleIcon } from '@chakra-ui/icons'; 
 
 
 const CustomGold = "#A5874D";

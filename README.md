@@ -1,10 +1,6 @@
 # 🍸 AllServe
 
-O **AllServe** é um sistema web full-stack desenvolvido para **conectar clientes a profissionais de eventos**, com foco inicial em **bartenders**.  
-A plataforma oferece uma experiência completa, permitindo **cadastro e autenticação de usuários com diferentes papéis** (como **Cliente**, **Bartender** e **Administrador**) e controle de acesso personalizado de acordo com cada função.  
-
-Além da autenticação, o sistema possibilita **busca e visualização de perfis profissionais**, **chat para negociação de serviços**, **contratação direta**, **pagamento online simulado** e **avaliação pós-evento**.  
-O objetivo é tornar o processo de contratação de profissionais de eventos mais simples, seguro e eficiente, centralizando todas as etapas em um único ambiente digital.
+O **AllServe** é um sistema web full-stack criado para conectar clientes a profissionais de eventos, com foco inicial em bartenders. A plataforma oferece autenticação, busca e visualização de perfis, contratação direta, pagamento online simulado e avaliação pós-evento. Seu propósito é tornar o processo de contratação mais simples, seguro e eficiente, reunindo todas as etapas em um único ambiente digital.
 
 
 ## 🚀 Tecnologias Utilizadas

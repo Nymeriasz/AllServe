@@ -1,250 +1,179 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Heading,
-  Input,
-  Select,
-  VStack,
-  useToast,
-  InputGroup,
-  InputLeftAddon,
-  Container, 
-  Spinner,   
-  Center,    
-  Link,      
-  Text       
+  Box, Button, Container, FormControl, FormLabel, Heading, Input,
+  VStack, Text, useToast, Select, HStack, Link
 } from '@chakra-ui/react';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from '../firebase/config.js';
+
+const CustomGold = "#A5874D";
 
 export default function SignUp() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('cliente');
+  const [formData, setFormData] = useState({
+    nome: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'cliente',
+    cep: '',
+    endereco: '',
+    numero: '',
+    bairro: '',
+    cidade: '',
+    uf: ''
+  });
   
-
-  const [especialidade, setEspecialidade] = useState('');
-  const [precoPorHora, setPrecoPorHora] = useState('');
-  const [fotoURL, setFotoURL] = useState('');
-  
-  const [whatsapp, setWhatsapp] = useState('');
-  const [instagram, setInstagram] = useState('');
-  
-  const [isLoading, setIsLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setIsLoading(true); 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      return toast({ title: 'Senhas não conferem', status: 'error' });
+    }
+
+    setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
 
-      let userData = {
+      await updateProfile(user, { displayName: formData.nome });
+
+      const localFormatado = formData.cidade && formData.uf 
+        ? `${formData.cidade} - ${formData.uf}` 
+        : '';
+
+      await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
-        email: user.email,
-        role: role,
-      };
-
-      if (role === 'bartender') {
-        userData = {
-          ...userData,
-          especialidade,
-          precoPorHora: Number(precoPorHora), 
-          fotoURL,
-          nome: email.split('@')[0],
-          
-          whatsapp: whatsapp,
-          instagram: instagram,
-        };
-      }
-
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, userData);
-
-      toast({
-        title: "Conta criada.",
-        description: "Cadastro realizado com sucesso! Faça seu login.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
+        nome: formData.nome,
+        email: formData.email,
+        role: formData.role,
+        
+        cep: formData.cep,
+        endereco: formData.endereco,
+        numero: formData.numero,
+        bairro: formData.bairro,
+        cidade: formData.cidade,
+        uf: formData.uf,
+        local: localFormatado,
+        
+        createdAt: new Date(),
+        status: 'Online'
       });
-      navigate('/login'); 
+
+      toast({ title: 'Conta criada com sucesso!', status: 'success' });
+      navigate(formData.role === 'bartender' ? '/dashboard' : '/home');
 
     } catch (error) {
-      console.error("Erro no cadastro:", error);
-      toast({
-        title: "Erro no cadastro.",
-        description: "Verifique seu email ou se a senha tem 6+ caracteres.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
+      console.error(error);
+      toast({ 
+        title: 'Erro ao criar conta', 
+        description: error.message, 
+        status: 'error' 
       });
-      setIsLoading(false); 
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxW="container.lg" py={{ base: 12, md: 20 }} centerContent>
-      <Box 
-        p={8} 
-        maxWidth="700px"
-        width="100%"
-        borderWidth={1} 
-        borderRadius={8} 
-        boxShadow="lg" 
-        bg="white"
-      >
-        <VStack spacing={4}>
-          <Heading color="primaria">Criar Conta</Heading>
+    <Box bg="gray.50" minH="100vh" py={10}>
+      <Container maxW="container.md" bg="white" p={8} borderRadius="lg" shadow="lg">
+        <VStack spacing={6}>
+          <Heading color="#292728">Crie sua conta</Heading>
           
-          {isLoading ? (
-            <Center h="300px">
-              <Spinner size="xl" color="primaria" />
-            </Center>
-          ) : (
-            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-              <VStack spacing={4}>
-                <FormControl isRequired>
-                  <FormLabel>Email</FormLabel>
-                  <Input
-                    type="email"
-                    placeholder="seuemail@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    focusBorderColor="primaria" 
-                  />
-                </FormControl>
-                
+          <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+            <VStack spacing={4}>
+              
+              <FormControl isRequired>
+                <FormLabel>Nome Completo</FormLabel>
+                <Input name="nome" onChange={handleChange} focusBorderColor={CustomGold} />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>Email</FormLabel>
+                <Input type="email" name="email" onChange={handleChange} focusBorderColor={CustomGold} />
+              </FormControl>
+
+              <HStack w="100%">
                 <FormControl isRequired>
                   <FormLabel>Senha</FormLabel>
-                  <Input
-                    type="password"
-                    placeholder="Mínimo 6 caracteres"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    focusBorderColor="primaria" 
-                  />
+                  <Input type="password" name="password" onChange={handleChange} focusBorderColor={CustomGold} />
                 </FormControl>
-
                 <FormControl isRequired>
-                  <FormLabel>Eu sou</FormLabel>
-                  <Select 
-                    value={role} 
-                    onChange={(e) => setRole(e.target.value)} 
-                    focusBorderColor="primaria" 
-                  >
-                    <option value="cliente">Cliente (Quero contratar)</option>
-                    <option value="bartender">Bartender (Quero trabalhar)</option>
-                  </Select>
+                  <FormLabel>Confirmar Senha</FormLabel>
+                  <Input type="password" name="confirmPassword" onChange={handleChange} focusBorderColor={CustomGold} />
                 </FormControl>
+              </HStack>
 
-               
-                {role === 'bartender' && (
-                  <VStack spacing={4} w="100%" p={4} borderWidth={1} borderRadius="md" borderColor="gray.200">
-                    <Heading size="sm" color="textoEscuro">Perfil do Bartender</Heading>
-                    
-                    <FormControl isRequired>
-                      <FormLabel>Especialidade Principal</FormLabel>
-                      <Input
-                        type="text"
-                        placeholder="Ex: Drinks Clássicos, Mixologia"
-                        value={especialidade}
-                        onChange={(e) => setEspecialidade(e.target.value)}
-                        focusBorderColor="primaria"
-                      />
-                    </FormControl>
-                    
-                    <FormControl isRequired>
-                      <FormLabel>Preço por Hora</FormLabel>
-                      <InputGroup>
-                        <InputLeftAddon>R$</InputLeftAddon>
-                        <Input
-                          type="number"
-                          placeholder="50"
-                          value={precoPorHora}
-                          onChange={(e) => setPrecoPorHora(e.target.value)}
-                          focusBorderColor="primaria"
-                        />
-                      </InputGroup>
-                    </FormControl>
-                    
-                    <FormControl>
-                      <FormLabel>URL da Foto de Perfil (Opcional)</FormLabel>
-                      <Input
-                        type="text"
-                        placeholder="https://exemplo.com/sua-foto.jpg"
-                        value={fotoURL}
-                        onChange={(e) => setFotoURL(e.target.value)}
-                        focusBorderColor="primaria"
-                      />
-                    </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Eu sou:</FormLabel>
+                <Select name="role" onChange={handleChange} focusBorderColor={CustomGold}>
+                  <option value="cliente">Cliente (Quero contratar)</option>
+                  <option value="bartender">Bartender (Quero trabalhar)</option>
+                </Select>
+              </FormControl>
 
-            
-                    <FormControl>
-                      <FormLabel>WhatsApp (apenas números)</FormLabel>
-                      <InputGroup>
-                        <InputLeftAddon>+</InputLeftAddon>
-                        <Input
-                          type="tel"
-                          placeholder="5583999998888"
-                          value={whatsapp}
-                          onChange={(e) => setWhatsapp(e.target.value)}
-                          focusBorderColor="primaria"
-                        />
-                      </InputGroup>
-                    </FormControl>
+              <Heading size="sm" w="full" pt={2} color="gray.500">Endereço</Heading>
+              
+              <HStack w="100%">
+                 <FormControl w="140px">
+                    <FormLabel>CEP</FormLabel>
+                    <Input name="cep" onChange={handleChange} focusBorderColor={CustomGold} placeholder="00000-000"/>
+                 </FormControl>
+                 <FormControl flex={1}>
+                    <FormLabel>Endereço</FormLabel>
+                    <Input name="endereco" onChange={handleChange} focusBorderColor={CustomGold} placeholder="Rua, Av..."/>
+                 </FormControl>
+                 <FormControl w="80px">
+                    <FormLabel>Nº</FormLabel>
+                    <Input name="numero" onChange={handleChange} focusBorderColor={CustomGold} />
+                 </FormControl>
+              </HStack>
 
-                   
-                    <FormControl>
-                      <FormLabel>Instagram (apenas utilizador)</FormLabel>
-                      <InputGroup>
-                        <InputLeftAddon>@</InputLeftAddon>
-                        <Input
-                          type="text"
-                          placeholder="seu.usuario"
-                          value={instagram}
-                          onChange={(e) => setInstagram(e.target.value)}
-                          focusBorderColor="primaria"
-                        />
-                      </InputGroup>
-                    </FormControl>
-                  </VStack>
-                )}
+              <HStack w="100%">
+                 <FormControl>
+                    <FormLabel>Bairro</FormLabel>
+                    <Input name="bairro" onChange={handleChange} focusBorderColor={CustomGold} />
+                 </FormControl>
+                 <FormControl>
+                    <FormLabel>Cidade</FormLabel>
+                    <Input name="cidade" onChange={handleChange} focusBorderColor={CustomGold} />
+                 </FormControl>
+                 <FormControl w="80px">
+                    <FormLabel>UF</FormLabel>
+                    <Input name="uf" onChange={handleChange} focusBorderColor={CustomGold} maxLength={2} placeholder="SP"/>
+                 </FormControl>
+              </HStack>
+          
+              <Button 
+                type="submit" 
+                w="full" 
+                bg={CustomGold} 
+                color="white" 
+                _hover={{ bg: '#8C713B' }}
+                isLoading={loading}
+                size="lg"
+                mt={4}
+              >
+                Cadastrar
+              </Button>
+            </VStack>
+          </form>
 
-                <Button 
-                  type="submit" 
-                  variant="principal" 
-                  width="full"
-                  size="lg"
-                  mt={4}
-                  isLoading={isLoading}
-                >
-                  Cadastrar
-                </Button>
-
-                <Center mt={2}>
-                  <Link as={RouterLink} to="/login" fontSize="sm" color="textoEscuro">
-                    <Text> 
-                      Já tem uma conta?{' '}
-                      <Text as="span" color="primaria" fontWeight="bold">
-                        Entre aqui
-                      </Text>
-                    </Text>
-                  </Link>
-                </Center>
-              </VStack>
-            </form>
-          )}
+          <Text>
+            Já tem uma conta? <Link as={RouterLink} to="/login" color={CustomGold} fontWeight="bold">Entrar</Link>
+          </Text>
         </VStack>
-      </Box>
-    </Container>
+      </Container>
+    </Box>
   );
 }

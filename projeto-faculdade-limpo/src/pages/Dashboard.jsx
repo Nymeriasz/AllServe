@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
-import { auth, db } from '../firebase/config'; 
+import { doc, getDoc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; 
+import { auth, db, storage } from '../firebase/config'; 
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext'; 
 import {
-  Box, Container, Heading, Text, VStack, HStack, Button,
+  Box, Container, Heading, Text, VStack, Button,
   Spinner, Center, useToast, Avatar, 
   Card, CardBody, Badge, Icon, Flex, Divider,
   Menu, MenuButton, MenuList, MenuItem, AvatarBadge,
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton,
-  useDisclosure
+  useDisclosure, HStack, FormControl, FormLabel, Input, Select
 } from '@chakra-ui/react';
 import { 
   FaUserEdit, FaCheckCircle, FaCreditCard, FaClock, 
-  FaSignOutAlt, FaExternalLinkAlt, FaBell, FaListUl 
+  FaExternalLinkAlt, FaBell, FaListUl, FaSignOutAlt 
 } from 'react-icons/fa'; 
 
 import BartenderDashboard from './BartenderDashboard'; 
@@ -33,6 +34,13 @@ export default function Dashboard() {
 
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  const [isSaving, setIsSaving] = useState(false);
+  const [loadingText, setLoadingText] = useState("Salvando...");
+  
+  const [activeTab, setActiveTab] = useState('solicitacoes');
+  const [imageFile, setImageFile] = useState(null); 
+
   const [minhasSolicitacoes, setMinhasSolicitacoes] = useState([]);
   const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(true);
 
@@ -47,7 +55,22 @@ export default function Dashboard() {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setFormData({ ...data });
+          setFormData({ 
+            nome: data.nome || '',
+            telefone: data.telefone || '',
+            instagram: data.instagram || '',
+            fotoURL: data.fotoURL || '/img/avatar-exemplo.png',
+            tipo: data.tipo || '', 
+            status: data.status || 'Online',
+            cep: data.cep || '',
+            endereco: data.endereco || '',
+            numero: data.numero || '',
+            bairro: data.bairro || '',
+            cidade: data.cidade || '',
+            uf: data.uf || '',
+            local: data.local || '', 
+            ...data
+          });
         } else {
           navigate('/login');
         }
@@ -83,18 +106,121 @@ export default function Dashboard() {
     navigate('/login');
   };
 
+  const handleTabClick = (tabName) => setActiveTab(tabName);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      
+      if (file.size > 2 * 1024 * 1024) {
+        toast({
+          title: "Imagem muito grande!",
+          description: "Por favor, escolha uma imagem menor que 2MB.",
+          status: "warning",
+          duration: 4000,
+          isClosable: true,
+        });
+        e.target.value = ""; 
+        setImageFile(null);
+        return;
+      }
+      setImageFile(file);
+    }
+  };
+
   const handleProcederPagamento = (solicitacao) => {
     addToCart({
         id: solicitacao.bartenderId,
         nome: solicitacao.bartenderNome || "Bartender",
         precoPorHora: Number(solicitacao.valor) || 0, 
         imagem: solicitacao.bartenderFoto || '/img/avatar-placeholder.png',
-        quantity: 1 
+        quantity: 1,
+        solicitacaoId: solicitacao.id 
     });
     navigate('/carrinho'); 
   };
 
-  const novasRespostas = minhasSolicitacoes.filter(s => s.status === 'aceito' || s.status === 'recusado').length;
+  const uploadImage = async () => {
+    if (!imageFile || !currentUser) return formData.fotoURL; 
+    
+    setLoadingText("Enviando foto...");
+    
+    try {
+      const fileRef = ref(storage, `profile_pictures/${currentUser.uid}/${imageFile.name}`);
+      await uploadBytes(fileRef, imageFile);
+      const photoURL = await getDownloadURL(fileRef);
+      
+      setImageFile(null); 
+      return photoURL;
+    } catch (error) {
+      console.error("Erro upload:", error);
+      toast({ title: "Erro ao enviar imagem.", status: "error" });
+      return formData.fotoURL; 
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    
+    setIsSaving(true); 
+    setLoadingText("Salvando...");
+
+    try {
+      
+      const newPhotoURL = await uploadImage();
+
+      setLoadingText("Atualizando dados...");
+
+      const cidade = formData.cidade || '';
+      const uf = formData.uf || '';
+      const localFormatado = (cidade && uf) ? `${cidade} - ${uf}` : (formData.local || '');
+
+      const dadosParaSalvar = {
+        nome: formData.nome || '', 
+        telefone: formData.telefone || '', 
+        instagram: formData.instagram || '',
+        fotoURL: newPhotoURL,
+        tipo: formData.tipo || '', 
+        status: formData.status || 'Online',
+        cep: formData.cep || '',
+        endereco: formData.endereco || '',
+        numero: formData.numero || '',
+        bairro: formData.bairro || '',
+        cidade: cidade,
+        uf: uf,
+        local: localFormatado
+      };
+
+      const userDocRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userDocRef, dadosParaSalvar);
+      
+      setFormData(prev => ({ ...prev, ...dadosParaSalvar }));
+      toast({ title: "Perfil Atualizado!", status: "success", duration: 3000 });
+
+    } catch (err) {
+      console.error("Erro ao salvar perfil:", err);
+      toast({ 
+        title: "Erro ao salvar.", 
+        description: "Verifique sua conexão.", 
+        status: "error" 
+      });
+    } finally {
+      setIsSaving(false); 
+      setLoadingText("Salvar Alterações");
+    }
+  };
+
+  const novasRespostas = minhasSolicitacoes.filter(s => 
+    s.status === 'aceito' || s.status === 'recusado'
+  ).length;
+
+  const solicitacoesAtivas = minhasSolicitacoes.filter(s => s.status !== 'pago');
 
   if (loading || !formData) return (
     <Center h="50vh"><Spinner size="xl" color={CustomGold} /><Text ml={4}>Carregando...</Text></Center>
@@ -109,10 +235,7 @@ export default function Dashboard() {
       <Container maxW="container.md">
         
         <Card bg="white" shadow="lg" borderRadius="xl" overflow="visible">
-          
-          {/* --- BANNER COM GRADIENTE DOURADO (IGUAL AO BARTENDER) --- */}
           <Box h="120px" bgGradient="linear(to-r, #c49b3f, #e5b64e)" borderRadius="xl xl 0 0"></Box>
-          
           <CardBody textAlign="center" mt="-60px">
             
             <Menu>
@@ -152,12 +275,10 @@ export default function Dashboard() {
                 
                 <MenuItem onClick={onOpen} icon={<FaBell color={novasRespostas > 0 ? "red" : "gray"} />}>
                   Minhas Solicitações
-                  {novasRespostas > 0 && (
-                    <Badge ml={2} colorScheme="red" borderRadius="full">{novasRespostas} Atualizações</Badge>
-                  )}
+                  {novasRespostas > 0 && <Badge ml={2} colorScheme="red" borderRadius="full">{novasRespostas} Atualizações</Badge>}
                 </MenuItem>
 
-                <MenuItem onClick={() => navigate('/editar-perfil')} icon={<FaUserEdit />}>
+                <MenuItem onClick={() => handleTabClick('editar-perfil')} icon={<FaUserEdit />}>
                   Editar Credenciais
                 </MenuItem>
 
@@ -166,10 +287,7 @@ export default function Dashboard() {
                 </MenuItem>
 
                 <Divider my={1} />
-                
-                <MenuItem onClick={handleLogout} icon={<FaSignOutAlt />} color="red.500">
-                  Sair
-                </MenuItem>
+                <MenuItem onClick={handleLogout} icon={<FaSignOutAlt />} color="red.500">Sair</MenuItem>
               </MenuList>
             </Menu>
 
@@ -178,91 +296,41 @@ export default function Dashboard() {
               <Text color="gray.500">{formData.tipo || "Cliente / Empresa"}</Text>
             </VStack>
 
-            <Box mt={8} p={6} maxW="500px" mx="auto" bg="gray.50" borderRadius="lg" border="1px dashed" borderColor="gray.200">
-               <VStack spacing={2}>
-                  <Icon as={FaListUl} w={6} h={6} color="gray.400" />
-                  <Text color="gray.500" fontWeight="medium">Painel de Controle</Text>
-                  <Text fontSize="sm" color="gray.400">
-                    {minhasSolicitacoes.length > 0 
-                      ? `Você enviou ${minhasSolicitacoes.length} solicitações. Clique na foto para gerenciar.` 
-                      : "Você ainda não fez nenhuma solicitação."}
-                  </Text>
-                  {minhasSolicitacoes.length > 0 && (
-                    <Button size="sm" colorScheme="yellow" variant="link" onClick={onOpen}>
-                      Ver Acompanhamento
-                    </Button>
-                  )}
-               </VStack>
-            </Box>
-
           </CardBody>
         </Card>
 
         <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside">
           <ModalOverlay backdropFilter="blur(5px)" />
           <ModalContent>
-            <ModalHeader borderBottom="1px solid" borderColor="gray.100">
-               Minhas Solicitações
-               <Text fontSize="sm" fontWeight="normal" color="gray.500">
-                 Acompanhe o status dos seus pedidos.
-               </Text>
-            </ModalHeader>
+            <ModalHeader borderBottom="1px solid" borderColor="gray.100">Minhas Solicitações Pendentes</ModalHeader>
             <ModalCloseButton />
-            
             <ModalBody bg="gray.50" p={6}>
               {loadingSolicitacoes ? (
                  <Center h="200px"><Spinner size="xl" color={CustomGold} /></Center>
-              ) : minhasSolicitacoes.length === 0 ? (
+              ) : solicitacoesAtivas.length === 0 ? (
                  <Center h="200px" flexDirection="column">
                     <Icon as={FaListUl} w={12} h={12} color="gray.300" mb={4} />
-                    <Text color="gray.500">Nenhuma solicitação enviada.</Text>
-                    <Button as={Link} to="/profissionais" mt={4} size="sm" colorScheme="yellow" bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>
-                        Buscar Profissionais
-                    </Button>
+                    <Text color="gray.500">Nenhuma pendência.</Text>
+                    <Button as={Link} to="/profissionais" mt={4} size="sm" colorScheme="yellow" bg={CustomGold} color="white" _hover={{ bg: '#8C713B' }}>Buscar Profissionais</Button>
                  </Center>
               ) : (
                  <VStack spacing={4} align="stretch">
-                     {minhasSolicitacoes.map((solicitacao) => (
-                         <Card key={solicitacao.id} borderLeft="4px solid" borderColor={
-                            solicitacao.status === 'aceito' ? 'green.400' : 
-                            solicitacao.status === 'recusado' ? 'red.400' : 'orange.400'
-                         } shadow="sm">
+                     {solicitacoesAtivas.map((solicitacao) => (
+                         <Card key={solicitacao.id} borderLeft="4px solid" borderColor={solicitacao.status === 'aceito' ? 'green.400' : 'orange.400'} shadow="sm">
                              <CardBody>
                                  <Flex justify="space-between" align="center" wrap="wrap" gap={4}>
                                      <Box>
                                          <Heading size="sm" color={DarkText} mb={1}>{solicitacao.bartenderNome}</Heading>
                                          <Text fontSize="sm" color="gray.600" fontWeight="bold">{solicitacao.evento}</Text>
-                                         <HStack fontSize="xs" color="gray.500" mt={1}>
-                                            <Icon as={FaClock} />
-                                            <Text>{solicitacao.data} às {solicitacao.horario}</Text>
-                                         </HStack>
+                                         <HStack fontSize="xs" color="gray.500" mt={1}><Icon as={FaClock} /><Text>{solicitacao.data} às {solicitacao.horario}</Text></HStack>
                                      </Box>
-                                     
                                      <VStack align="end">
-                                        {solicitacao.status === 'pendente' && (
-                                            <Badge colorScheme="orange" p={2} borderRadius="md">
-                                                Aguardando...
-                                            </Badge>
-                                        )}
-                                        {solicitacao.status === 'recusado' && (
-                                            <Badge colorScheme="red" p={2} borderRadius="md">Recusado</Badge>
-                                        )}
+                                        {solicitacao.status === 'pendente' && <Badge colorScheme="orange" p={2} borderRadius="md">Aguardando...</Badge>}
+                                        {solicitacao.status === 'recusado' && <Badge colorScheme="red" p={2} borderRadius="md">Recusado</Badge>}
                                         {solicitacao.status === 'aceito' && (
                                             <VStack align="end">
-                                                <Badge colorScheme="green" p={2} borderRadius="md">
-                                                    <Icon as={FaCheckCircle} mr={1}/> Aceito!
-                                                </Badge>
-                                                <Button 
-                                                    size="sm" 
-                                                    colorScheme="green" 
-                                                    leftIcon={<FaCreditCard />}
-                                                    onClick={() => {
-                                                        onClose();
-                                                        handleProcederPagamento(solicitacao);
-                                                    }}
-                                                >
-                                                    Contratar / Pagar
-                                                </Button>
+                                                <Badge colorScheme="green" p={2} borderRadius="md"><Icon as={FaCheckCircle} mr={1}/> Aceito!</Badge>
+                                                <Button size="sm" colorScheme="green" leftIcon={<FaCreditCard />} onClick={() => { onClose(); handleProcederPagamento(solicitacao); }}>Contratar / Pagar</Button>
                                             </VStack>
                                         )}
                                      </VStack>
@@ -275,6 +343,58 @@ export default function Dashboard() {
             </ModalBody>
           </ModalContent>
         </Modal>
+
+        {activeTab === 'editar-perfil' && (
+            <Box mt={8} bg="white" p={8} borderRadius="lg" boxShadow="sm" borderTop="4px solid" borderColor={CustomGold}>
+                <Heading size="lg" mb={6} color={DarkText}>Editar Credenciais</Heading>
+                <VStack spacing={5} as="form" onSubmit={handleSubmit}>
+                    
+                    <FormControl>
+                        <FormLabel>Logo / Foto de Perfil</FormLabel>
+                        <Input type="file" accept="image/*" onChange={handleImageChange} p={1} border="1px solid" borderColor="gray.200" />
+                    </FormControl>
+
+                    <FormControl isRequired>
+                        <FormLabel>Nome da Empresa</FormLabel>
+                        <Input name="nome" value={formData.nome} onChange={handleChange} focusBorderColor={CustomGold} />
+                    </FormControl>
+
+                    <HStack w="100%" spacing={4}>
+                        <FormControl><FormLabel>Tipo de Negócio</FormLabel><Input name="tipo" placeholder="Ex: Restaurante, Bar..." value={formData.tipo} onChange={handleChange} focusBorderColor={CustomGold} /></FormControl>
+                        <FormControl><FormLabel>Status</FormLabel><Select name="status" value={formData.status} onChange={handleChange} focusBorderColor={CustomGold}><option value="Online">Online</option><option value="Contratando">Contratando</option><option value="Ausente">Ausente</option></Select></FormControl>
+                    </HStack>
+                    
+                    <Heading size="sm" width="full" pt={2} color="gray.500">Endereço</Heading>
+                    <HStack w="100%" spacing={4}>
+                        <FormControl w="150px"><FormLabel>CEP</FormLabel><Input name="cep" value={formData.cep} onChange={handleChange} focusBorderColor={CustomGold} placeholder="00000-000" /></FormControl>
+                        <FormControl flex={1}><FormLabel>Endereço (Rua/Av)</FormLabel><Input name="endereco" value={formData.endereco} onChange={handleChange} focusBorderColor={CustomGold} /></FormControl>
+                        <FormControl w="100px"><FormLabel>Número</FormLabel><Input name="numero" value={formData.numero} onChange={handleChange} focusBorderColor={CustomGold} /></FormControl>
+                    </HStack>
+                    <HStack w="100%" spacing={4}>
+                        <FormControl flex={1}><FormLabel>Bairro</FormLabel><Input name="bairro" value={formData.bairro} onChange={handleChange} focusBorderColor={CustomGold} /></FormControl>
+                        <FormControl flex={1}><FormLabel>Cidade</FormLabel><Input name="cidade" value={formData.cidade} onChange={handleChange} focusBorderColor={CustomGold} /></FormControl>
+                        <FormControl w="80px"><FormLabel>UF</FormLabel><Input name="uf" value={formData.uf} onChange={handleChange} focusBorderColor={CustomGold} maxLength={2} /></FormControl>
+                    </HStack>
+
+                    <FormControl><FormLabel>Telefone / WhatsApp</FormLabel><Input name="telefone" value={formData.telefone} onChange={handleChange} focusBorderColor={CustomGold} /></FormControl>
+                    <FormControl><FormLabel>Instagram</FormLabel><Input name="instagram" value={formData.instagram} onChange={handleChange} focusBorderColor={CustomGold} placeholder="@seuinsta" /></FormControl>
+
+                    <Button 
+                        type="submit" 
+                        bg={CustomGold} 
+                        color="white" 
+                        _hover={{ bg: '#8C713B' }} 
+                        w="full" 
+                        isLoading={isSaving} 
+                        loadingText={loadingText} 
+                        size="lg" 
+                        mt={4}
+                    >
+                        {loadingText === "Salvando..." ? "Salvar Alterações" : loadingText}
+                    </Button>
+                </VStack>
+            </Box>
+        )}
 
       </Container>
     </Box>

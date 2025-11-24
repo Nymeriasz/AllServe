@@ -59,7 +59,7 @@ export default function PerfilBartender() {
   const isFavorite = favorites.includes(bartenderId);
   const isLoadingFavorite = togglingFavoriteId === bartenderId;
   
-  // Verifica se o perfil é do próprio usuário logado
+ 
   const isOwnProfile = currentUser && currentUser.uid === bartenderId;
   
   const placeholderImage = '/img/avatar-placeholder.png';
@@ -78,7 +78,6 @@ export default function PerfilBartender() {
         }
         setBartender({ id: bartenderDoc.id, ...bartenderDoc.data() });
 
-        // --- AVALIAÇÕES EM TEMPO REAL (onSnapshot) ---
         const qAvaliacoes = query(
           collection(db, 'users', bartenderId, 'avaliacoes'),
           where('visivel', '==', true)
@@ -94,7 +93,7 @@ export default function PerfilBartender() {
             } else {
                 setMediaAvaliacao(0);
             }
-            setLoading(false); // Finaliza loading após carregar avaliações
+            setLoading(false); 
         }, (error) => {
             console.error("Erro ao buscar avaliações:", error);
             setLoading(false);
@@ -109,7 +108,7 @@ export default function PerfilBartender() {
     if (bartenderId) fetchData();
     else setLoading(false);
 
-    return () => unsubscribe(); // Limpa o ouvinte ao sair
+    return () => unsubscribe(); 
   }, [bartenderId]);
 
   const handleOpenSolicitacao = () => {
@@ -242,7 +241,6 @@ export default function PerfilBartender() {
 
           <Text fontSize="lg" color="gray.700">{bartender.resumo}</Text>
 
-          {/* SÓ MOSTRA O BOTÃO SE NÃO FOR O PRÓPRIO PERFIL */}
           {!isOwnProfile && (
             <Box pt={4} w="100%">
                <Button 

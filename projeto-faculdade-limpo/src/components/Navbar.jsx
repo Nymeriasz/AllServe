@@ -2,9 +2,11 @@ import {
   Box, Flex, HStack, Link as ChakraLink, IconButton, Menu, MenuButton,
   MenuList, MenuItem, Avatar, Button, useDisclosure, VStack, Text
 } from '@chakra-ui/react';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { FaShoppingCart, FaUser, FaSearch, FaBars, FaTimes } from 'react-icons/fa';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { FaShoppingCart, FaUser, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext.jsx';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 const NavLink = ({ to, children, isActive }) => (
   <ChakraLink
@@ -24,8 +26,18 @@ export default function Navbar() {
   const { currentUser, userRole } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isBartender = userRole === 'bartender';
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    }
+  };
 
   return (
     <Box bg="white" px={6} boxShadow="sm">
@@ -43,22 +55,16 @@ export default function Navbar() {
         <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
           <NavLink to="/home" isActive={location.pathname === '/home'}>Início</NavLink>
           <NavLink to="/sobre" isActive={location.pathname === '/sobre'}>Sobre</NavLink>
+          
           {!isBartender && (
             <NavLink to="/profissionais" isActive={location.pathname === '/profissionais'}>Profissionais</NavLink>
           )}
         </HStack>
 
-        <HStack spacing={5} display={{ base: 'none', md: 'flex' }}>
-          {!isBartender && (
-            <IconButton
-                icon={<FaSearch />}
-                aria-label="Pesquisar"
-                variant="ghost"
-                color="black"
-                fontSize="lg"
-                _hover={{ color: '#c49b3f', bg: 'transparent' }}
-            />
-          )}
+        {/* Ícones Desktop */}
+        <HStack spacing={3} display={{ base: 'none', md: 'flex' }}>
+          
+          {/* A LUPA DE BUSCA FOI REMOVIDA DAQUI */}
           
           {currentUser ? (
             <Menu>
@@ -73,6 +79,7 @@ export default function Navbar() {
                     <MenuItem as={RouterLink} to="/meus-favoritos">Favoritos</MenuItem>
                   </>
                 )}
+                <MenuItem onClick={handleLogout} icon={<FaSignOutAlt />} color="red.500">Sair</MenuItem>
               </MenuList>
             </Menu>
           ) : (
@@ -102,6 +109,7 @@ export default function Navbar() {
           )}
         </HStack>
 
+        {/* Menu Móvel */}
         <IconButton
           size="md"
           icon={isOpen ? <FaTimes /> : <FaBars />}
@@ -113,6 +121,8 @@ export default function Navbar() {
           _hover={{ color: '#c49b3f' }}
         />
       </Flex>
+
+      {/* Menu Mobile */}
       {isOpen ? (
         <Box pb={4} display={{ md: 'none' }}>
           <VStack as="nav" spacing={3} align="stretch">
@@ -133,6 +143,7 @@ export default function Navbar() {
                         <NavLink to="/meus-favoritos">Favoritos</NavLink>
                     </>
                 )}
+                <ChakraLink onClick={handleLogout} px={3} py={2}>Sair</ChakraLink>
               </>
             ) : (
               <>

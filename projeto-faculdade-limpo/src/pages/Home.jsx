@@ -33,7 +33,6 @@ import Barista from '../assets/barista-icon.png';
 import Showman from '../assets/showman-icon.png';
 import Capa from '../assets/capa.png'; 
 
-// --- 1. COMPONENTE EXCLUSIVO DO BARTENDER (Mural de Empresas MAIOR) ---
 const BartenderHome = () => {
   const [empresas, setEmpresas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +100,7 @@ const BartenderHome = () => {
           {empresas.length === 0 ? (
              <Text color="gray.500" textAlign="center">Nenhuma empresa encontrada no momento.</Text>
           ) : (
-            // Mudamos para 2 colunas para os cards ficarem maiores
+           
             <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
               {empresas.map((empresa) => (
                 <Card 
@@ -116,13 +115,13 @@ const BartenderHome = () => {
                   overflow="hidden"
                   border="1px solid"
                   borderColor="gray.100"
-                  direction={{ base: 'column', sm: 'row' }} // Layout horizontal
+                  direction={{ base: 'column', sm: 'row' }} 
                 >
                   <Flex w="100%">
-                    {/* --- ÁREA DA IMAGEM MAIOR --- */}
+                 
                     <Box 
-                      w={{ base: '100%', sm: '180px' }} // Largura fixa da imagem
-                      h={{ base: '180px', sm: 'auto' }} // Altura automática para preencher
+                      w={{ base: '100%', sm: '180px' }} 
+                      h={{ base: '180px', sm: 'auto' }} 
                       bg="gray.100" 
                       flexShrink={0}
                       position="relative"
@@ -142,7 +141,6 @@ const BartenderHome = () => {
                       )}
                     </Box>
 
-                    {/* --- INFORMAÇÕES DA EMPRESA --- */}
                     <CardBody py={4} px={5} display="flex" flexDirection="column" justifyContent="center">
                       <VStack align="start" spacing={2}>
                         <Flex justify="space-between" w="100%" align="center">
@@ -168,15 +166,13 @@ const BartenderHome = () => {
           
           <Box bg="#fff8e1" p={6} borderRadius="lg" border="1px dashed #c49b3f" textAlign="center">
              <Heading size="sm" color="#8C713B" mb={2}>Quer aparecer para essas empresas?</Heading>
-             <Text color="#8C713B">Mantenha seu calendário atualizado no seu Dashboard.</Text>
+             <Text color="#8C713B">Mantenha seu calendário atualizado no seu perfil.</Text>
           </Box>
         </VStack>
       </Container>
     </Box>
   );
 };
-
-// --- 2. COMPONENTES AUXILIARES DA HOME DO CLIENTE ---
 
 const servicesData = [
   { id: 'tradicional', name: 'Tradicional', title: 'Barman Clássico/Tradicional', description: 'Muito requisitado em festas formais, jantares de gala e bares sofisticados, já que domina os coquetéis clássicos e o atendimento elegante.', imgSrc: Tradicional },
@@ -272,7 +268,6 @@ const ProfissionalCard = ({ profissional }) => {
     );
 };
 
-// --- 3. COMPONENTE PRINCIPAL HOME (Decide qual tela mostrar) ---
 
 export default function Home() {
   const { userRole } = useAuth();
@@ -280,12 +275,10 @@ export default function Home() {
   const [profissionals, setprofissionals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // SE FOR BARTENDER, RETORNA A HOME NOVA (Mural)
   if (userRole === 'bartender') {
     return <BartenderHome />;
   }
 
-  // SE NÃO FOR BARTENDER, CONTINUA COM A LÓGICA ANTIGA DE CARREGAR PROFISSIONAIS
   useEffect(() => {
     const fetchprofissionals = async () => {
       setLoading(true);
@@ -310,7 +303,6 @@ export default function Home() {
     fetchprofissionals();
   }, []);
 
-  // LAYOUT ORIGINAL PARA CLIENTES
   return (
     <Box>
       <Box bg="corFooter" minH={{ base: '600px', md: '80vh' }} id='inicio' position="relative" overflow="hidden" display="flex" alignItems="center">

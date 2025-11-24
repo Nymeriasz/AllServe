@@ -1,90 +1,30 @@
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { Link as RouterLink } from 'react-router-dom';
-import {
-  Box,
-  Container,
-  Heading,
-  Input,
-  Select,
-  SimpleGrid,
-  Spinner,
-  Center,
-  Text,
-  Button,
-  Image,
-  HStack 
+import { useLocation } from 'react-router-dom';
+import { 
+  Box, Container, Heading, Text, SimpleGrid, Input, 
+  InputGroup, InputLeftElement, Select, Flex, Spinner, Center 
 } from '@chakra-ui/react';
+import { FaSearch } from 'react-icons/fa';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import BartenderCard from '../components/BartenderCard'; 
 
 const CustomGold = "#A5874D";
-const DarkText = "#292728";
-const LightText = "#707070";
-
-const ITEMS_PER_PAGE = 8;
-
-const Profissional = ({ profissional }) => {
-  const imageUrl = profissional.fotoURL || `https://api.dicebear.com/8.x/avataaars/svg?seed=${profissional.seed || profissional.nome}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
-  const preco = Number(profissional.preco) || 0;
-
-  return (
-    <Box as={RouterLink} to={`/bartender/${profissional.id}`}
-        bg="white" borderRadius="md" boxShadow="lg" overflow="hidden" textAlign="left" transition="0.2s" _hover={{ boxShadow: '2xl', transform: 'translateY(-4px)', textDecoration: 'none' }}>
-        <Box aspectRatio={1 / 1} overflow="hidden" position="relative">
-            <Image src={imageUrl} alt={`Avatar de ${profissional.nome}`} objectFit="cover" width="100%" height="100%" p={1} />
-        </Box>
-        <Box px={3} py={3}>
-            <Heading as="h4" size="sm" color={DarkText} mb={1} noOfLines={1}>
-                {profissional.nome}
-            </Heading>
-            <Text fontSize="xs" color={LightText} mb={1} noOfLines={1}>
-                {profissional.categoria}
-            </Text>
-            <Text fontSize="md" fontWeight="bold" color={CustomGold}>
-                R$ {preco > 0 ? preco.toFixed(0) : 'N/A'}
-            </Text>
-        </Box>
-    </Box>
-  );
-};
-
-
-const Paginacao = ({ currentPage, totalPages, goToPage, goToPreviousPage, goToNextPage }) => {
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
-
-  return (
-    <HStack spacing={2} justify="center" mt={10}>
-      <Button onClick={goToPreviousPage} disabled={currentPage === 1}>
-        &laquo;
-      </Button>
-      {pageNumbers.map(number => (
-        <Button
-          key={number}
-          onClick={() => goToPage(number)}
-          isActive={currentPage === number}
-          colorScheme={currentPage === number ? 'yellow' : 'gray'}
-        >
-          {number}
-        </Button>
-      ))}
-      <Button onClick={goToNextPage} disabled={currentPage === totalPages}>
-        &raquo;
-      </Button>
-    </HStack>
-  );
-};
 
 export default function BuscarBartenders() {
-  const [allBartenders, setAllBartenders] = useState([]);
-  const [filteredBartenders, setFilteredBartenders] = useState([]);
+  const [bartenders, setBartenders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [ordenacao, setOrdenacao] = useState('relevancia');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [filterType, setFilterType] = useState('');
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.search) {
+        setSearchTerm(location.state.search);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const fetchBartenders = async () => {
@@ -92,129 +32,95 @@ export default function BuscarBartenders() {
       try {
         const q = query(collection(db, 'users'), where('role', '==', 'bartender'));
         const querySnapshot = await getDocs(q);
-        const bartendersList = querySnapshot.docs.map(doc => ({
+        
+        const lista = querySnapshot.docs.map(doc => ({
           id: doc.id,
-          ...doc.data(),
-          imagem: doc.data().fotoURL,
-          preco: Number(doc.data().precoPorHora) || 0,
-          categoria: doc.data().especialidade,
-          nome: doc.data().nome || doc.data().email.split('@[0]'),
+          ...doc.data()
         }));
-        setAllBartenders(bartendersList);
-        setFilteredBartenders(bartendersList);
+        
+        setBartenders(lista);
       } catch (error) {
         console.error("Erro ao buscar bartenders:", error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchBartenders();
   }, []);
 
-  useEffect(() => {
-    let processedList = [...allBartenders];
-
-    if (searchTerm) {
-      processedList = processedList.filter(b =>
-        b.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (ordenacao === 'preco_asc') {
-      processedList.sort((a, b) => a.preco - b.preco);
-    } else if (ordenacao === 'preco_desc') {
-      processedList.sort((a, b) => b.preco - a.preco);
-    }
+  const filteredBartenders = bartenders.filter((bartender) => {
+    const nome = bartender.nome ? bartender.nome.toLowerCase() : '';
+    const busca = searchTerm.toLowerCase();
     
-    setFilteredBartenders(processedList);
-    setCurrentPage(1);
-  }, [searchTerm, ordenacao, allBartenders]);
-
-  const totalPages = Math.ceil(filteredBartenders.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentBartenders = filteredBartenders.slice(startIndex, endIndex);
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
-  const goToPage = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-      window.scrollTo(0, 0);
-    }
-  };
-  const goToPreviousPage = () => { goToPage(currentPage - 1); };
-  const goToNextPage = () => { goToPage(currentPage + 1); };
+    const matchesSearch = nome.includes(busca); 
+    const matchesType = filterType ? bartender.especialidade === filterType : true;
+    
+    return matchesSearch && matchesType;
+  });
 
   return (
-    <Box>
-      <Box bg="#E9E0D4" py={12} textAlign="center">
-        <Container maxW="container.lg">
-          <Heading as="h1" size="2xl" color={CustomGold}>
-            Profissionais
-          </Heading>
-        </Container>
-      </Box>
+    <Box bg="gray.50" minH="calc(100vh - 64px)" py={10}>
+      <Container maxW="container.xl">
+        
+        <Box textAlign="center" mb={10}>
+          <Heading size="xl" color="#292728" mb={4}>Encontre o Profissional Ideal</Heading>
+          <Text color="gray.500">Busque por nome ou especialidade para seu evento.</Text>
+        </Box>
 
-      <Box bg="gray.50" py={6}>
-        <Container maxW="container.lg" display="flex" 
-                     flexDirection={{ base: 'column', md: 'row' }} 
-                     gap={4}>
-          <Input
-            placeholder="Buscar por nome ou especialidade..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            bg="white"
-            size="lg"
-            flex={1}
-          />
-          <Select
-            value={ordenacao}
-            onChange={(e) => setOrdenacao(e.target.value)}
-            bg="white"
-            size="lg"
-            minWidth={{ base: '100%', md: '200px' }} 
+        <Flex 
+          direction={{ base: 'column', md: 'row' }} 
+          gap={4} 
+          bg="white" 
+          p={6} 
+          borderRadius="lg" 
+          shadow="sm" 
+          mb={10}
+        >
+          <InputGroup size="lg">
+            <InputLeftElement pointerEvents="none">
+              <FaSearch color="gray.300" />
+            </InputLeftElement>
+            
+            <Input 
+              placeholder="Digite o nome do bartender..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              focusBorderColor={CustomGold}
+            />
+          </InputGroup>
+
+          <Select 
+            placeholder="Todas as Especialidades" 
+            size="lg" 
+            w={{ base: 'full', md: '300px' }}
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            focusBorderColor={CustomGold}
           >
-            <option value="relevancia">Ordenar por: Relevância</option>
-            <option value="preco_asc">Menor Preço</option>
-            <option value="preco_desc">Maior Preço</option>
+            <option value="Barman Clássico">Barman Clássico</option>
+            <option value="Mixologista">Mixologista</option>
+            <option value="Flair Bartender">Flair Bartender</option>
+            <option value="Barista">Barista</option>
           </Select>
-        </Container>
-      </Box>
+        </Flex>
 
-    
-      <Container maxW="container.lg" py={12}>
         {loading ? (
           <Center h="200px">
             <Spinner size="xl" color={CustomGold} />
           </Center>
+        ) : filteredBartenders.length === 0 ? (
+          <Center h="200px" flexDirection="column">
+             <Text fontSize="lg" color="gray.500">Nenhum profissional encontrado com esses critérios.</Text>
+          </Center>
         ) : (
-          <>
-            <SimpleGrid columns={{ base: 2, md: 3, lg: 4 }} spacing={6}>
-              {currentBartenders.length > 0 ? (
-                currentBartenders.map(prof => (
-                  <Profissional key={prof.id} profissional={prof} />
-                ))
-              ) : (
-                <Text gridColumn="span 4" textAlign="center" fontSize="lg" color="gray.600">
-                  Nenhum profissional encontrado.
-                </Text>
-              )}
-            </SimpleGrid>
-
-            {totalPages > 1 && (
-              <Paginacao
-                currentPage={currentPage}
-                totalPages={totalPages}
-                goToPage={goToPage}
-                goToPreviousPage={goToPreviousPage}
-                goToNextPage={goToNextPage}
-              />
-            )}
-          </>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} spacing={6}>
+            {filteredBartenders.map((bartender) => (
+              <BartenderCard key={bartender.id} bartender={bartender} />
+            ))}
+          </SimpleGrid>
         )}
+
       </Container>
     </Box>
   );

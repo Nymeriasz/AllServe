@@ -1,16 +1,15 @@
-// src/pages/Checkout.jsx
 import React, { useState } from 'react';
 import {
   Box, Container, Heading, Text, VStack, HStack, Button, Image,
   IconButton, Input, FormControl, FormLabel, SimpleGrid,
-  useToast, Icon, Flex, Center, Spinner
+  useToast, Icon, Flex, Center
 } from '@chakra-ui/react';
 import { FaTrash } from 'react-icons/fa'; 
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext'; // Importar Auth
+import { useAuth } from '../context/AuthContext';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { db } from '../firebase/config'; // Importar Banco de Dados
-import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 
 const CartItem = ({ item, removeFromCart, updateQuantity }) => {
   return (
@@ -53,7 +52,7 @@ const CartItem = ({ item, removeFromCart, updateQuantity }) => {
 
 export default function Checkout() {
   const { cart, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
-  const { currentUser } = useAuth(); // Pegar usuário logado
+  const { currentUser } = useAuth(); 
   const toast = useToast();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -69,40 +68,47 @@ export default function Checkout() {
     setIsProcessing(true);
 
     try {
-      // 1. Salvar cada item do carrinho na coleção 'pagamentos'
       const promises = cart.map(async (item) => {
+     
         await addDoc(collection(db, 'pagamentos'), {
           clienteId: currentUser.uid,
           clienteNome: currentUser.displayName || currentUser.email,
           bartenderId: item.id,
-          itemComprado: item.nome, // Nome que aparecerá no histórico
+          itemComprado: item.nome,
           fotoURL: item.imagem || item.fotoURL || null,
           valor: Number(item.precoPorHora) * Number(item.quantity),
           horasContratadas: item.quantity,
-          status: 'Pago', // Status confirmado
+          status: 'Pago',
           criadoEm: new Date()
         });
+
+        if (item.solicitacaoId) {
+            const solicitacaoRef = doc(db, 'solicitacoes', item.solicitacaoId);
+            await updateDoc(solicitacaoRef, { 
+                status: 'pago',
+                paymentDate: new Date()
+            });
+        }
       });
 
       await Promise.all(promises);
 
-      // 2. Sucesso
       toast({
         title: 'Pagamento Confirmado!',
-        description: 'O profissional agora aparece em seus pedidos.',
+        description: 'O serviço foi confirmado e o profissional notificado.',
         status: 'success',
         duration: 5000,
         isClosable: true,
       });
 
       clearCart();
-      navigate('/historico-pagamentos'); // Redireciona direto para "Meus Pedidos"
+      navigate('/historico-pagamentos');
 
     } catch (error) {
-      console.error("Erro ao processar pagamento:", error);
+      console.error("Erro no checkout:", error);
       toast({
         title: 'Erro no pagamento',
-        description: 'Tente novamente mais tarde.',
+        description: 'Verifique sua conexão ou tente novamente.',
         status: 'error',
       });
     } finally {
@@ -120,7 +126,7 @@ export default function Checkout() {
         <Center h="200px" bg="gray.50" borderRadius="md">
           <VStack>
             <Text fontSize="lg" color="gray.600">O seu carrinho está vazio.</Text>
-            <Button as={RouterLink} to="/profissionais" variant="principal">
+            <Button as={RouterLink} to="/profissionais" variant="solid" bg="#A5874D" color="white" _hover={{ bg: '#8C713B' }}>
               Encontrar Profissionais
             </Button>
           </VStack>
@@ -128,7 +134,6 @@ export default function Checkout() {
       ) : (
         <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={10}>
           
-          {/* Lista de Itens */}
           <VStack spacing={6} align="stretch">
             <Heading as="h2" size="md" color="textoEscuro">
               Itens ({cart.length})
@@ -161,7 +166,6 @@ export default function Checkout() {
             </Box>
           </VStack>
           
-          {/* Formulário de Pagamento */}
           <Box bg="white" p={6} borderRadius="lg" boxShadow="sm" borderWidth="1px" borderColor="gray.200" h="fit-content">
             <Heading as="h2" size="md" mb={6} color="textoEscuro">
               Pagamento Seguro

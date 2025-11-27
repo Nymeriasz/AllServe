@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'; 
+import { createBrowserRouter } from 'react-router-dom'; 
 import Home from './Home.jsx'; 
 import Login from './Login.jsx'; 
 import SignUp from './SignUp.jsx'; 
@@ -7,7 +7,6 @@ import ProtectedRoute from '../routes/ProtectedRoute.jsx';
 import Layout from '../components/Layout.jsx'; 
 import ForgotPassword from './ForgotPassword.jsx'; 
 import ListaBartenders from './ListaBartenders.jsx'; 
-import AvaliarBartender from './AvaliarBartender.jsx'; 
 import PerfilBartender from './PerfilBartender.jsx'; 
 import PerfilEmpresa from './PerfilEmpresa.jsx';
 import ModerarAvaliacoes from './ModerarAvaliacoes.jsx';
@@ -21,13 +20,13 @@ import MeusFavoritos from './MeusFavoritos.jsx';
 import EditarPerfil from './EditarPerfil.jsx';
 
 const router = createBrowserRouter([
- 
+  
+  // Rotas Públicas (Fora do Layout Principal se quiser esconder Navbar/Footer, 
+  // mas geralmente Login/SignUp ficam melhor fora ou com layout simplificado)
   {
     path: '/login',
     element: <Login />,
   },
-
-  
   {
     path: '/signup',
     element: <SignUp />,
@@ -37,16 +36,18 @@ const router = createBrowserRouter([
     element: <ForgotPassword />,
   },
 
+  // Rotas com Layout (Navbar + Footer)
   {
     path: '/',
     element: <Layout />,
     children: [
       {
+        // A rota raiz agora mostra a Home (Vitrine)
         index: true,
-       
-        element: <Navigate to="/login" replace />,
+        element: <Home />, 
       },
       {
+        // Rota 'home' opcional, redireciona para a raiz para evitar conteúdo duplicado
         path: 'home', 
         element: <Home />,
       },
@@ -70,7 +71,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-
       {
         path: 'empresa/:empresaId',
         element: (
@@ -79,9 +79,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      
-
-
       {
         path: 'editar-perfil',
         element: (
@@ -100,6 +97,9 @@ const router = createBrowserRouter([
       },
       {
         path: 'bartender/:bartenderId',
+        // Perfil pode ser público ou protegido? 
+        // Se for público (para SEO/compartilhar), remova o ProtectedRoute.
+        // Se for só para logados, mantenha.
         element: (
           <ProtectedRoute>
             <PerfilBartender />
@@ -160,4 +160,4 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default router;
+export default router; 

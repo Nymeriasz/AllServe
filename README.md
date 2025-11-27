@@ -1,0 +1,158 @@
+# 🍸 AllServe
+
+O **AllServe** é um sistema web full-stack criado para conectar clientes a profissionais de eventos, com foco inicial em bartenders. A plataforma oferece autenticação, busca e visualização de perfis, contratação direta, pagamento online simulado e avaliação pós-evento. Seu propósito é tornar o processo de contratação mais simples, seguro e eficiente, reunindo todas as etapas em um único ambiente digital.
+
+
+## 🚀 Tecnologias Utilizadas
+
+- **Frontend:** React (com Vite), React Router DOM  
+- **Backend & Banco de Dados:** Firebase (Authentication, Cloud Firestore)  
+- **UI (Componentes):** Chakra UI  
+- **Gerenciamento de Estado (Auth):** React Context  
+
+
+## ⚙️ Guia de Instalação e Execução Local
+
+Siga os passos abaixo para configurar o projeto em seu ambiente local.
+
+### **Pré-requisitos**
+
+- É necessário ter o **Node.js** instalado.  
+  Para verificar, execute no terminal:
+  ```bash
+  node -v
+
+### **Passo a Passo**
+
+1. **Clonar o repositório**
+   ```bash
+   git clone https://github.com/Nymeriasz/AllServe.gi
+
+2. **Acessar a pasta do projeto**
+   ```bash
+   cd AllServe/projeto-faculdade-limpo
+
+3. **Instalar as dependências**
+   ```bash
+   npm install
+
+4. **Executar o projeto**
+   ```bash
+   npm run dev
+
+O terminal exibirá o endereço local (geralmente http://localhost:5173/).
+Abra-o no navegador para visualizar o sistema.
+
+## 📂 Estrutura do Projeto
+```bash
+AllServe/
+│
+├── projeto-faculdade-limpo/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/              # Imagens e ícones
+│   │   ├── components/          # Componentes reutilizáveis
+│   │   ├── context/             # Contexto de autenticação
+│   │   ├── firebase/            # Configuração do Firebase
+│   │   ├── pages/               # Páginas principais
+│   │   ├── routes/              # Definição das rotas e proteção
+│   │   └── main.jsx             # Ponto de entrada do React
+│   ├── package.json
+│   └── vite.config.js
+│
+└── README.md
+``` 
+
+## 🧪 Alguns testes 
+
+### **1. Rota Protegida (Usuário Deslogado)**
+- **Ação:** Acesse diretamente a URL `/dashboard`.  
+- **Resultado Esperado:** O sistema deve redirecionar automaticamente para a tela de **login**, garantindo que o acesso é protegido.
+
+---
+
+### **2. Cadastro de Usuários com Papéis**
+- **Ação:**  
+  - Crie um usuário **cliente**, um **bartender** e um **administrador**.  
+- **Verificação:**  
+  - No **Firebase Authentication**, os três usuários devem aparecer criados.  
+  - No **Cloud Firestore**, a coleção `users` deve conter documentos com o `uid`, `email` e o `role` correspondente.
+
+---
+
+### **3. Login e Acesso ao Dashboard**
+- **Ação:** Faça login como **cliente**.  
+- **Resultado Esperado:**  
+  - Redirecionamento para `/dashboard`.  
+  - Exibição de informações personalizadas (como histórico de pagamentos e avaliações).
+
+---
+
+### **4. Conteúdo Específico por Papel**
+- **Ação:** Faça login como **administrador**.  
+- **Resultado Esperado:**  
+  - Exibição do **“Painel do Administrador”** com opções exclusivas, como **moderação de avaliações**.
+
+---
+
+### **5. Recuperação de Senha**
+- **Ação:**  
+  - Na tela de login, clique em **“Esqueci minha senha”** e insira um e-mail válido.  
+- **Resultado Esperado:**  
+  - Notificação confirmando o envio do e-mail de redefinição.
+
+---
+
+### **6. Busca e Filtro de Bartenders**
+- **Ação:**  
+  - Faça login e acesse a página de **busca**.  
+  - Utilize os filtros de **especialidade** e **ordenação por preço/avaliação**.  
+- **Resultado Esperado:**  
+  - A listagem de bartenders é atualizada dinamicamente conforme os filtros aplicados.
+
+---
+
+### **7. Simulação de Pagamento**
+- **Ação:**  
+  - Adicione bartenders ao **carrinho** e prossiga para o **checkout**.  
+  - Realize um **pagamento simulado**.  
+- **Resultado Esperado:**  
+  - Redirecionamento para a página de sucesso (`/payment-success`) e carrinho zerado.
+
+
+# 🧪 Executando os Testes Automatizados
+
+Este projeto possui três camadas de testes.  
+**Execute tudo dentro de `projeto-faculdade-limpo`.**
+
+---
+
+## 1. Testes Unitários (Vitest)
+- Testam lógica de componentes e páginas.
+- Para executar:
+
+bash
+```npm run test```
+## 2. Testes E2E (Selenium)
+Simulam um robô usando o Chrome.
+
+Pré-requisito: Google Chrome instalado.
+
+Use dois terminais:
+
+## 1 — Rodar o site
+bash
+```npm run dev```
+## 2 — Rodar o robô
+bash
+```node selenium-tests/teste-login.js```
+## 3. Testes BDD (Cucumber)
+Executa cenários dos arquivos .feature.
+
+bash
+```npm run test:cucumber```
+
+## 📜 Licença
+
+Este projeto foi desenvolvido com fins **acadêmicos e educacionais**.
+O código pode ser utilizado livremente para estudos e aprimoramentos.
